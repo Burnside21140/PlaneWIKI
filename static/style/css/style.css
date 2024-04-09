@@ -24,7 +24,7 @@ nav li {
     font-size: 40px;
 }
 
-nav ul li:hover {
+nav ul a:hover {
   background-color: #3E4E7B;
 }
 
