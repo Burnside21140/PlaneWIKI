@@ -1,0 +1,50 @@
+/**
+ * Navigation block
+ **/
+nav {
+    font-size: 120%;
+    font-weight: bold;
+    background-color: #303D60;
+    color: white;
+}
+
+/* by using "nav ul" instead of just "ul", only an unordered list in the nav bar will take on this styling, meaning it doesn't mess up unordered lists in the main content */
+nav ul {
+    list-style-type: none;
+    text-align: center;
+    margin-top: 0px;
+    padding: 0px;
+}
+
+nav li {
+    display: inline;
+    margin-top: 100%;
+    margin-bottom: 100%;
+    padding: 5px;
+    font-size: 30px;
+}
+
+nav ul li:hover {
+  background-color: #3E4E7B;
+}
+
+.nav-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 2fr;
+}
+
+.nav-bar-item {
+    margin: 0px;
+    color: white;
+    text-decoration: none;
+}
+/* end of nav block */
+
+body {
+    margin: 0px;
+}
+
+a {
+    color: inherit;
+    text-decoration: inherit;
+}
