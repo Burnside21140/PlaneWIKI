@@ -21,7 +21,7 @@ nav li {
     margin-top: 100%;
     margin-bottom: 100%;
     padding: 5px;
-    font-size: 30px;
+    font-size: 40px;
 }
 
 nav ul li:hover {
@@ -47,4 +47,10 @@ body {
 a {
     color: inherit;
     text-decoration: inherit;
+}
+
+.logo {
+    background-color: #3E4E7B;
+    padding-left: 20px;
+    padding-right: 20px;
 }
