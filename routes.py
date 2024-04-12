@@ -1,6 +1,6 @@
 from flask import Flask, render_template
 
-# import sqlite3
+import sqlite3
 
 
 app = Flask(__name__)
@@ -13,7 +13,16 @@ def home():     # ROUTE FUNCTION
 
 @app.route("/planes")  # ROUTE DECORATOR
 def planes():     # ROUTE FUNCTION
-    return render_template("planes.html")
+    connection = sqlite3.connect('planeWIKIDB.db')
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM Plane")
+    planes = cursor.fetchall()
+    connection.close()
+    planelist = []
+    for i in planes:
+        item = [i[0], i[1], i[2], i[3]]
+        planelist.append(item)
+    return render_template("planes.html", planes=planelist)
 
 
 @app.route("/engines")  # ROUTE DECORATOR
