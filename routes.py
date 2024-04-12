@@ -10,13 +10,16 @@ app = Flask(__name__)
 def home():     # ROUTE FUNCTION
     return render_template("home.html")
 
+
 @app.route("/planes")  # ROUTE DECORATOR
 def planes():     # ROUTE FUNCTION
     return render_template("planes.html")
 
+
 @app.route("/engines")  # ROUTE DECORATOR
 def engines():     # ROUTE FUNCTION
     return render_template("engines.html")
+
 
 @app.route("/create")  # ROUTE DECORATOR
 def create():     # ROUTE FUNCTION

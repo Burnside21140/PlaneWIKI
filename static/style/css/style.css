@@ -54,3 +54,33 @@ a {
     padding-left: 20px;
     padding-right: 20px;
 }
+
+/* Plane and engines lists */
+.pe-container {
+    border-radius: 15px;
+    width: 80%;
+    height: 30%;
+    background-color: #303D60;
+    align-self: center;
+    margin: auto;
+    margin-top: 25px;
+}
+
+.pe-header {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.pe-info {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 15px;
+}
+.pe-info img {
+    height: 100%;
+    width: 100%;
+}
