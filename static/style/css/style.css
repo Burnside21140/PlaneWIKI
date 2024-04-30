@@ -59,8 +59,18 @@ a {
 .pe-container {
     border-radius: 15px;
     width: 80%;
-    height: 250px;
+    height: auto;
     background-color: #303D60;
+    align-self: center;
+    margin: auto;
+    margin-top: 25px;
+}
+
+.pe-section {
+    border-radius: 15px;
+    width: 90%;
+    height: auto;
+    background-color: #3E4E7B;
     align-self: center;
     margin: auto;
     margin-top: 25px;
@@ -85,4 +95,10 @@ a {
 .pe-info img {
     height: 100%;
     width: 100%;
+}
+
+/** Font **/
+
+body {
+    font-family: "PT Sans Narrow", sans-serif;
 }

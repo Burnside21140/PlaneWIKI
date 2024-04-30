@@ -1,16 +1,25 @@
 {% extends 'layout.html' %} 
 
 {% block content %} 
-{% for plane in planes %}
 <div class="pe-container">
     <div class="pe-header">
-        <h1>{{plane.1}}</h1>
+        <h1>Planes</h1>
         <h1>Sort By</h1>
     </div>
-    <div class="pe-info">
-        <img src="" alt="">
-        <p>{{plane.2}}</p>
-    </div>
 </div>
-{% endfor %}
+
+<div class="pe-container">
+    {% for plane in planes %}
+        <div class="pe-section">
+            <div class="pe-header">
+                <h1>{{plane.1}}</h1>
+                <h1>Avg Rating: 0/5</h1>
+            </div>
+            <div class="pe-info">
+                <img src="" alt="">
+                <p>{{plane.2}}</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
 {% endblock %}
