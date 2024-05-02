@@ -1,7 +1,14 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-<div>
-    <h1>{{planename}}</h1>
+<div class="pe-container">
+    <div class="pe-header">
+        <h1>{{planename}}</h1>
+        <h1>Avg Rating: 0/5</h1>
+    </div>
+    <div class="pe-info">
+        <img src="planeimg" alt="">
+        <p>{{planedesc}}</p>
+    </div>
 </div>
 {% endblock %}
