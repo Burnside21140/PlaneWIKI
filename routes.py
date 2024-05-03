@@ -46,6 +46,14 @@ def engines():     # ROUTE FUNCTION
         enginelist.append(item)
     return render_template("engines.html", engines=enginelist)
 
+@app.route("/engine/<string:engine_id>")
+def engine(engine_id):
+    connection = sqlite3.connect('planeWIKIDB.db')
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM Engine where id = ?", (engine_id,))
+    engine = cursor.fetchone()
+    connection.close()
+    return render_template('engine.html', enginename=engine[1], enginedesc=engine[2], engineimg=engine[3])
 
 @app.route("/create")  # ROUTE DECORATOR
 def create():     # ROUTE FUNCTION

@@ -1,6 +1,6 @@
-{% extends 'layout.html' %} 
+{% extends 'layout.html' %}
 
-{% block content %} 
+{% block content %}
 <div class="pe-container">
     <div class="pe-header">
         <h1>Engines</h1>
@@ -9,7 +9,9 @@
 </div>
 
 <div class="pe-container">
+    <br>
     {% for engine in engines %}
+    <a href="/engine/{{engine.0}}">
         <div class="pe-section">
             <div class="pe-header">
                 <h1>{{engine.1}}</h1>
@@ -20,6 +22,8 @@
                 <p>{{engine.2}}</p>
             </div>
         </div>
+    </a>
     {% endfor %}
+    <br>
 </div>
 {% endblock %}

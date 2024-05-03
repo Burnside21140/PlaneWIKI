@@ -2,13 +2,15 @@
 
 {% block content %}
 <div class="pe-container">
-    <div class="pe-header">
+    <br>
+    <div class="pe-header pe-section">
         <h1>{{planename}}</h1>
         <h1>Avg Rating: 0/5</h1>
     </div>
-    <div class="pe-info">
-        <img src="planeimg" alt="">
+    <div class="pe-info pe-section">
+        <img src="{{planeimg}}" alt="">
         <p>{{planedesc}}</p>
     </div>
+    <br>
 </div>
 {% endblock %}
