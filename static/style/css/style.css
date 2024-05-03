@@ -25,7 +25,7 @@ nav li {
 }
 
 nav ul a:hover {
-  background-color: #3E4E7B;
+    background-color: #3E4E7B;
 }
 
 .nav-bar {
@@ -38,6 +38,7 @@ nav ul a:hover {
     color: white;
     text-decoration: none;
 }
+
 /* end of nav block */
 
 body {
