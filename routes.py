@@ -24,6 +24,7 @@ def planes():     # ROUTE FUNCTION
         planelist.append(item)
     return render_template("planes.html", planes=planelist)
 
+
 @app.route("/plane/<string:plane_id>")
 def plane(plane_id):
     connection = sqlite3.connect('planeWIKIDB.db')
@@ -32,6 +33,7 @@ def plane(plane_id):
     plane = cursor.fetchone()
     connection.close()
     return render_template('plane.html', planename=plane[1], planedesc=plane[2], planeimg=plane[3])
+
 
 @app.route("/engines")  # ROUTE DECORATOR
 def engines():     # ROUTE FUNCTION
@@ -46,6 +48,7 @@ def engines():     # ROUTE FUNCTION
         enginelist.append(item)
     return render_template("engines.html", engines=enginelist)
 
+
 @app.route("/engine/<string:engine_id>")
 def engine(engine_id):
     connection = sqlite3.connect('planeWIKIDB.db')
@@ -54,6 +57,7 @@ def engine(engine_id):
     engine = cursor.fetchone()
     connection.close()
     return render_template('engine.html', enginename=engine[1], enginedesc=engine[2], engineimg=engine[3])
+
 
 @app.route("/create")  # ROUTE DECORATOR
 def create():     # ROUTE FUNCTION

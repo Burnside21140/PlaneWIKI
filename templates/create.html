@@ -2,7 +2,11 @@
 
 {% block content %} 
 <form>
-    
+    <label for="PlaneEngine">Plane or Engine</label> <br>
+    <select name="PlaneEngine" id="PlaneEngine">
+        <option value="plane">Plane</option>
+        <option value="engine">Engine</option>
+    </select> <br>
     <label for="name">Name</label> <br> 
     <input type="text" id="name"> <br>
     <label for="description">Description</label> <br> 
@@ -10,5 +14,6 @@
     
     <label for="password">Password</label> <br> 
     <input type="text" id="password"> <br>
+    <button type="button">Submit</button>
 </form>
 {% endblock %}
