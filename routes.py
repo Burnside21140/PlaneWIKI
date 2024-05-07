@@ -62,16 +62,17 @@ def engine(engine_id):
 # Route for the create page
 @app.route("/create", methods=["GET", "POST"])
 def create():
+    print("One")
     if request.method == "POST":
+        print("Two")
         # Get form data
         plane_engine = request.form["PlaneEngine"]
-        print(plane_engine)
         name = request.form["name"]
         description = request.form["description"]
         password = request.form["password"]
 
         # Insert into the database
-        conn = sqlite3.connect("your_database.db")
+        conn = sqlite3.connect("planeWIKIDB.db")
         cursor = conn.cursor()
         if plane_engine == "plane":
             cursor.execute("INSERT INTO plane (name, description, password) VALUES (?, ?, ?)",
@@ -82,8 +83,9 @@ def create():
         conn.commit()
         conn.close()
 
-        return redirect(url_for("success"))  # Redirect to a success page or another route
+        return redirect(url_for(""))  # Redirect to a success page or another route
     else:
+        print("Three")
         return render_template("create.html")
 
 # Route for the success page
