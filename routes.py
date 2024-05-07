@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
 
 import sqlite3
 
@@ -59,9 +59,37 @@ def engine(engine_id):
     return render_template('engine.html', enginename=engine[1], enginedesc=engine[2], engineimg=engine[3])
 
 
-@app.route("/create")  # ROUTE DECORATOR
-def create():     # ROUTE FUNCTION
-    return render_template("create.html")
+# Route for the create page
+@app.route("/create", methods=["GET", "POST"])
+def create():
+    if request.method == "POST":
+        # Get form data
+        plane_engine = request.form["PlaneEngine"]
+        print(plane_engine)
+        name = request.form["name"]
+        description = request.form["description"]
+        password = request.form["password"]
+
+        # Insert into the database
+        conn = sqlite3.connect("your_database.db")
+        cursor = conn.cursor()
+        if plane_engine == "plane":
+            cursor.execute("INSERT INTO plane (name, description, password) VALUES (?, ?, ?)",
+                       (name, description, password))
+        if plane_engine == "engine":
+            cursor.execute("INSERT INTO engine (name, description, password) VALUES (?, ?, ?)",
+                       (name, description, password))
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for("success"))  # Redirect to a success page or another route
+    else:
+        return render_template("create.html")
+
+# Route for the success page
+@app.route("/success")
+def success():
+    return "Form submitted successfully!"
 
 
 if __name__ == "__main__":
