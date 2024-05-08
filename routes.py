@@ -81,11 +81,14 @@ def create():
         if plane_engine == "plane":
             cursor.execute("INSERT INTO plane (name, description, password) VALUES (?, ?, ?)",
                        (name, description, password))
+            connection.commit()
+            cursor.execute("SELECT * FROM plane where name = ? AND description = ? AND password = ?", (name, description, password))
+            engine = cursor.fetchone()
+            cursor.execute("INSERT INTO popular (pid, opened, ratings, totalratings) VALUES (?, 0, 0, 0",
+                        (name))
         if plane_engine == "engine":
             cursor.execute("INSERT INTO engine (name, description, password) VALUES (?, ?, ?)",
                        (name, description, password))
-        connection.commit()
-        connection.close()
         return render_template("created.html")  # Redirect to a success page or another route
     else:
         print("Three")
