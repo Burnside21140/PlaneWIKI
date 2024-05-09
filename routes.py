@@ -67,13 +67,9 @@ def create():
         print("Two")
         # Get form data
         plane_engine = request.form["PlaneEngine"]
-        print(plane_engine)
         name = request.form["name"]
-        print(name)
         description = request.form["description"]
-        print(description)
         password = request.form["password"]
-        print(password)
 
         # Insert into the database
         connection = sqlite3.connect('planeWIKIDB.db')
@@ -84,17 +80,23 @@ def create():
             connection.commit()
             cursor.execute("SELECT id FROM plane where name = ? AND description = ? AND password = ?", (name, description, password))
             id = cursor.fetchone()
-            print(f"ID: {id}  {id[0]}")
             cursor.execute("INSERT INTO popular (pid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)",
                         (id[0],))
             connection.commit()
         if plane_engine == "engine":
             cursor.execute("INSERT INTO engine (name, description, password) VALUES (?, ?, ?)",
                        (name, description, password))
+            connection.commit()
+            cursor.execute("SELECT id FROM engine where name = ? AND description = ? AND password = ?", (name, description, password))
+            id = cursor.fetchone()
+            cursor.execute("INSERT INTO popular (eid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)",
+                        (id[0],))
+            connection.commit()
         return render_template("created.html")  # Redirect to a success page or another route
     else:
         print("Three")
         return render_template("create.html")
+
 
 # Route for the success page
 @app.route("/success")
