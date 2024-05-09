@@ -1,5 +1,29 @@
-{% extends 'layout.html' %} 
+{% extends 'layout.html' %}
 
-{% block content %} 
-<p> Wow! This is such an interesting and very unique website, I love it! </p>
+{% block content %}
+<div class="pe-container">
+    <div class="pe-header">
+        <h1>Home</h1>
+        <h1>Sort By</h1>
+    </div>
+</div>
+
+<div class="pe-container">
+    <br>
+    {% for page in pages %}
+    <a href="/page/{{page.0}}">
+        <div class="pe-section">
+            <div class="pe-header">
+                <h1>{{page.1}}</h1>
+                <h1>Avg Rating: 0/5</h1>
+            </div>
+            <div class="pe-info">
+                <img src="" alt="">
+                <p>{{page.2}}</p>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+    <br>
+</div>
 {% endblock %}

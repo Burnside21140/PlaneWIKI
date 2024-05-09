@@ -8,7 +8,21 @@ app = Flask(__name__)
 
 @app.route("/")  # ROUTE DECORATOR
 def home():     # ROUTE FUNCTION
-    return render_template("home.html")
+    connection = sqlite3.connect('planeWIKIDB.db')
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM Plane")
+    planes = cursor.fetchall()
+    pagelist = []
+    for i in planes:
+        item = [i[0], i[1], i[2], i[3]]
+        pagelist.append(item)
+    cursor.execute("SELECT * FROM Engine")
+    engines = cursor.fetchall()
+    connection.close()
+    for i in engines:
+        item = [i[0], i[1], i[2], i[3]]
+        pagelist.append(item)
+    return render_template("home.html", pages=pagelist)
 
 
 @app.route("/planes")  # ROUTE DECORATOR
@@ -62,9 +76,7 @@ def engine(engine_id):
 # Route for the create page
 @app.route("/create", methods=["GET", "POST"])
 def create():
-    print("One")
     if request.method == "POST":
-        print("Two")
         # Get form data
         plane_engine = request.form["PlaneEngine"]
         name = request.form["name"]
