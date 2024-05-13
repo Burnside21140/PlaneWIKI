@@ -14,13 +14,15 @@ def home():     # ROUTE FUNCTION
     planes = cursor.fetchall()
     pagelist = []
     for i in planes:
-        item = [i[0], i[1], i[2], i[3]]
+        item = [i[0], i[1], i[2], i[3], i[5]]
+        print(i[5])
         pagelist.append(item)
     cursor.execute("SELECT * FROM Engine")
     engines = cursor.fetchall()
     connection.close()
     for i in engines:
-        item = [i[0], i[1], i[2], i[3]]
+        item = [i[0], i[1], i[2], i[3], i[5]]
+        print(i[5])
         pagelist.append(item)
     return render_template("home.html", pages=pagelist)
 
@@ -106,7 +108,6 @@ def create():
             connection.commit()
         return render_template("created.html")  # Redirect to a success page or another route
     else:
-        print("Three")
         return render_template("create.html")
 
 
