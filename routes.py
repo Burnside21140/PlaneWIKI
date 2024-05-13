@@ -47,6 +47,10 @@ def plane(plane_id):
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM Plane where id = ?", (plane_id,))
     plane = cursor.fetchone()
+    cursor.execute("SELECT opened FROM popular WHERE pid = ?", (plane_id,))
+    opened = cursor.fetchone()
+    opened = opened[0] + 1
+    cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;", (opened, plane_id,))
     connection.close()
     return render_template('plane.html', planename=plane[1], planedesc=plane[2], planeimg=plane[3])
 
