@@ -98,6 +98,11 @@ a {
     width: 100%;
 }
 
+.pe-sort {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
 /** Font **/
 
 body {
