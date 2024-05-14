@@ -51,6 +51,7 @@ def plane(plane_id):
     opened = cursor.fetchone()
     opened = opened[0] + 1
     cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;", (opened, plane_id,))
+    connection.commit()
     connection.close()
     return render_template('plane.html', planename=plane[1], planedesc=plane[2], planeimg=plane[3])
 
@@ -75,6 +76,11 @@ def engine(engine_id):
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM Engine where id = ?", (engine_id,))
     engine = cursor.fetchone()
+    cursor.execute("SELECT opened FROM popular WHERE eid = ?", (engine_id,))
+    opened = cursor.fetchone()
+    opened = opened[0] + 1
+    cursor.execute("UPDATE popular SET opened = ? WHERE eid = ?;", (opened, engine_id,))
+    connection.commit()
     connection.close()
     return render_template('engine.html', enginename=engine[1], enginedesc=engine[2], engineimg=engine[3])
 
