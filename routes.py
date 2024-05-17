@@ -29,16 +29,45 @@ def home():     # ROUTE FUNCTION
 
 @app.route("/planes")  # ROUTE DECORATOR
 def planes():     # ROUTE FUNCTION
+    sort_option = request.args.get("Sort", "new")
+    
     connection = sqlite3.connect('planeWIKIDB.db')
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM Plane")
+    
+    if sort_option == "new":
+        cursor.execute("SELECT * FROM Plane ORDER BY id DESC")
+    elif sort_option == "old":
+        cursor.execute("SELECT * FROM Plane ORDER BY id ASC")
+    elif sort_option == "mostViews":
+        cursor.execute("""
+            SELECT Plane.id, Plane.name, Plane.description, Plane.picture
+            FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
+            ORDER BY popular.opened DESC
+        """)
+    elif sort_option == "leastViews":
+        cursor.execute("""
+            SELECT Plane.id, Plane.name, Plane.description, Plane.picture
+            FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
+            ORDER BY popular.opened ASC
+        """)
+    elif sort_option == "A-Z":
+        cursor.execute("SELECT * FROM Plane ORDER BY name ASC")
+    elif sort_option == "Z-A":
+        cursor.execute("SELECT * FROM Plane ORDER BY name DESC")
+    else:
+        cursor.execute("SELECT * FROM Plane")
+    
     planes = cursor.fetchall()
     connection.close()
+    
     planelist = []
-    for i in planes:
-        item = [i[0], i[1], i[2], i[3]]
+    for plane in planes:
+        item = [plane[0], plane[1], plane[2], plane[3]]
         planelist.append(item)
-    return render_template("planes.html", planes=planelist)
+    
+    return render_template("planes.html", planes=planelist, sort_option=sort_option)
 
 
 @app.route("/plane/<string:plane_id>")
