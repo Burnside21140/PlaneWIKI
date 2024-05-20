@@ -6,25 +6,76 @@ import sqlite3
 app = Flask(__name__)
 
 
-@app.route("/")  # ROUTE DECORATOR
-def home():     # ROUTE FUNCTION
+@app.route("/", methods=["GET"])
+def home():
+    sort_option = request.args.get("Sort", "new")
+
     connection = sqlite3.connect('planeWIKIDB.db')
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM Plane")
-    planes = cursor.fetchall()
-    pagelist = []
-    for i in planes:
-        item = [i[0], i[1], i[2], i[3], i[5]]
-        print(i[5])
-        pagelist.append(item)
-    cursor.execute("SELECT * FROM Engine")
-    engines = cursor.fetchall()
+
+    if sort_option == "new":
+        query = """
+            SELECT id, name, description, picture, 'plane' AS type, id AS sort_value FROM Plane
+            UNION ALL
+            SELECT id, name, description, picture, 'engine' AS type, id AS sort_value FROM Engine
+            ORDER BY sort_value DESC
+        """
+    elif sort_option == "old":
+        query = """
+            SELECT id, name, description, picture, 'plane' AS type, id AS sort_value FROM Plane
+            UNION ALL
+            SELECT id, name, description, picture, 'engine' AS type, id AS sort_value FROM Engine
+            ORDER BY sort_value ASC
+        """
+    elif sort_option == "mostViews":
+        query = """
+            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.opened, 0) AS sort_value
+            FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
+            UNION ALL
+            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.opened, 0) AS sort_value
+            FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
+            ORDER BY sort_value DESC
+        """
+    elif sort_option == "leastViews":
+        query = """
+            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.opened, 0) AS sort_value
+            FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
+            UNION ALL
+            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.opened, 0) AS sort_value
+            FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
+            ORDER BY sort_value ASC
+        """
+    elif sort_option == "A-Z":
+        query = """
+            SELECT id, name, description, picture, 'plane' AS type, name AS sort_value FROM Plane
+            UNION ALL
+            SELECT id, name, description, picture, 'engine' AS type, name AS sort_value FROM Engine
+            ORDER BY sort_value COLLATE NOCASE ASC
+        """
+    elif sort_option == "Z-A":
+        query = """
+            SELECT id, name, description, picture, 'plane' AS type, name AS sort_value FROM Plane
+            UNION ALL
+            SELECT id, name, description, picture, 'engine' AS type, name AS sort_value FROM Engine
+            ORDER BY sort_value COLLATE NOCASE DESC
+        """
+    else:
+        query = """
+            SELECT id, name, description, picture, 'plane' AS type, id AS sort_value FROM Plane
+            UNION ALL
+            SELECT id, name, description, picture, 'engine' AS type, id AS sort_value FROM Engine
+        """
+
+    cursor.execute(query)
+    pages = cursor.fetchall()
     connection.close()
-    for i in engines:
-        item = [i[0], i[1], i[2], i[3], i[5]]
-        print(i[5])
-        pagelist.append(item)
-    return render_template("home.html", pages=pagelist)
+
+    return render_template("home.html", pages=pages, sort_option=sort_option)
+
 
 
 @app.route("/planes")  # ROUTE DECORATOR
