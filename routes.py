@@ -9,10 +9,8 @@ app = Flask(__name__)
 @app.route("/", methods=["GET"])
 def home():
     sort_option = request.args.get("Sort", "new")
-
     connection = sqlite3.connect('planeWIKIDB.db')
     cursor = connection.cursor()
-
     if sort_option == "new":
         query = """
             SELECT id, name, description, picture, 'plane' AS type, id AS sort_value FROM Plane
@@ -69,13 +67,10 @@ def home():
             UNION ALL
             SELECT id, name, description, picture, 'engine' AS type, id AS sort_value FROM Engine
         """
-
     cursor.execute(query)
     pages = cursor.fetchall()
     connection.close()
-
     return render_template("home.html", pages=pages, sort_option=sort_option)
-
 
 
 @app.route("/planes")  # ROUTE DECORATOR
