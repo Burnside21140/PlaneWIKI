@@ -3,8 +3,22 @@
 {% block content %}
 <div class="pe-container">
     <div class="pe-header">
-        <h1>Engines</h1>
-        <h1>Sort By</h1>
+        <div>
+            <h1>Engines</h1>
+        </div>
+        <div class="pe-sort">
+            <h1>Sort By</h1>
+            <form method='GET' action="/engines">
+                <select name="Sort" id="Sort" onchange="this.form.submit()">
+                    <option value="new" {% if sort_option == "new" %}selected{% endif %}>New</option>
+                    <option value="old" {% if sort_option == "old" %}selected{% endif %}>Old</option>
+                    <option value="mostViews" {% if sort_option == "mostViews" %}selected{% endif %}>Most Views</option>
+                    <option value="leastViews" {% if sort_option == "leastViews" %}selected{% endif %}>Least Views</option>
+                    <option value="A-Z" {% if sort_option == "A-Z" %}selected{% endif %}>A-Z</option>
+                    <option value="Z-A" {% if sort_option == "Z-A" %}selected{% endif %}>Z-A</option>
+                </select>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -18,7 +32,7 @@
                 <h1>Avg Rating: 0/5</h1>
             </div>
             <div class="pe-info">
-                <img src="" alt="">
+                <img src="{{engine.3}}" alt="">
                 <p>{{engine.2}}</p>
             </div>
         </div>
