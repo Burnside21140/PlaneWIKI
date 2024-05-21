@@ -108,3 +108,8 @@ a {
 body {
     font-family: "PT Sans Narrow", sans-serif;
 }
+
+/** Easter egg **/
+.triangle {
+    margin: 0px;
+}

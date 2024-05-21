@@ -226,5 +226,36 @@ def success():
     return "Form submitted successfully!"
 
 
+@app.route("/triangle/<string:lines>/<string:dir>")
+def triangles(lines, dir):
+    lines = int(lines)
+    actualLines = []
+    if lines <= 0:
+        return render_template("triangle.html", triangle=["You need to put in a value greater then 0"])
+    if dir == "up":
+        for i in range(1, lines + 1):
+            actualLines.append(" "*(lines-i) + "*"*(i-1) + "*" + "*"*(i-1))
+    if dir == "down":
+        for i in range(1, lines + 1):
+            actualLines.append(" "*(-1 + i) + "*"*(lines - i) + "*" + "*"*(lines - i))
+    if dir == "left":
+        for i in range(1, lines + 1):
+            actualLines.append(" "*(lines-i) + "*"*(i-1) + "*")
+        for i in range(1, lines + 1):
+            actualLines.append(" "*(i) + "*"*(lines - i))
+    if dir == "right":
+        for i in range(1, lines + 1):
+            actualLines.append("*" + "*"*(i-1))
+        for i in range(1, lines + 1):
+            actualLines.append("*"*(lines - i))
+    if dir == "diamond":
+        for i in range(1, lines + 1):
+            actualLines.append(" "*(lines-i) + "*"*(i-1) + "*" + "*"*(i-1))
+        for i in range(1, lines + 1):
+            actualLines.append(" "*(i) + "*"*(lines - i) + "*"*(lines - i - 1))
+
+    return render_template("triangle.html", triangle=actualLines)
+
+
 if __name__ == "__main__":
     app.run(debug=True)  # live updates code when building a website
