@@ -253,9 +253,49 @@ def triangles(lines, dir):
             actualLines.append(" "*(lines-i) + "*"*(i-1) + "*" + "*"*(i-1))
         for i in range(1, lines + 1):
             actualLines.append(" "*(i) + "*"*(lines - i) + "*"*(lines - i - 1))
-
+    if dir == "sand":
+        for i in range(1, lines + 1):
+            actualLines.append(" "*(-1 + i) + "*"*(lines - i) + "*" + "*"*(lines - i))
+        for i in range(1, lines + 1):
+            actualLines.append(" "*(lines-i) + "*"*(i-1) + "*" + "*"*(i-1))
     return render_template("triangle.html", triangle=actualLines)
 
+
+@app.route("/asciiart/<string:letters>/")
+def asciiArt(letters):
+    asciiLeters1 = [["q", " ██████╗ "], ["w", "██╗    ██╗"]]
+    asciiLeters2 = [["q", "██╔═══██╗"], ["w", "██║    ██║"]]
+    asciiLeters3 = [["q", "██║   ██║"], ["w", "██║ █╗ ██║"]]
+    asciiLeters4 = [["q", "██║▄▄ ██║"], ["w", "██║███╗██║"]]
+    asciiLeters5 = [["q", "╚██████╔╝"], ["w", "╚███╔███╔╝"]]
+    asciiLeters6 = [["q", " ╚══▀▀═╝ "], ["w", " ╚══╝╚══╝ "]]
+    ascii1 = []
+    ascii2 = []
+    ascii3 = []
+    ascii4 = []
+    ascii5 = []
+    ascii6 = []
+    for i in letters:
+        for letter in asciiLeters1:
+            if letter[0] == i:
+                ascii1.append(letter[1])
+        for letter in asciiLeters2:
+            if letter[0] == i:
+                ascii2.append(letter[1])
+        for letter in asciiLeters3:
+            if letter[0] == i:
+                ascii3.append(letter[1])
+        for letter in asciiLeters4:
+            if letter[0] == i:
+                ascii4.append(letter[1])
+        for letter in asciiLeters5:
+            if letter[0] == i:
+                ascii5.append(letter[1])
+        for letter in asciiLeters6:
+            if letter[0] == i:
+                ascii6.append(letter[1])
+    print(asciiLeters1, asciiLeters2, asciiLeters3, asciiLeters4, asciiLeters5, asciiLeters6)
+    return render_template("asciiart.html", asciiart=[ascii1, ascii2, ascii3, ascii4, ascii5, ascii6])
 
 if __name__ == "__main__":
     app.run(debug=True)  # live updates code when building a website
