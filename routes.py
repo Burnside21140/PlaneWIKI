@@ -235,27 +235,30 @@ def triangles(lines, dir):
     if dir == "up":
         for i in range(1, lines + 1):
             actualLines.append(" "*(lines-i) + "*"*(i-1) + "*" + "*"*(i-1))
-    if dir == "down":
+    elif dir == "down":
         for i in range(1, lines + 1):
             actualLines.append(" "*(-1 + i) + "*"*(lines - i) + "*" + "*"*(lines - i))
-    if dir == "left":
+    elif dir == "left":
         for i in range(1, lines + 1):
             actualLines.append(" "*(lines-i) + "*"*(i-1) + "*")
         for i in range(1, lines + 1):
             actualLines.append(" "*(i) + "*"*(lines - i))
-    if dir == "right":
+    elif dir == "right":
         for i in range(1, lines + 1):
             actualLines.append("*" + "*"*(i-1))
         for i in range(1, lines + 1):
             actualLines.append("*"*(lines - i))
-    if dir == "diamond":
+    elif dir == "diamond":
         for i in range(1, lines + 1):
             actualLines.append(" "*(lines-i) + "*"*(i-1) + "*" + "*"*(i-1))
         for i in range(1, lines + 1):
             actualLines.append(" "*(i) + "*"*(lines - i) + "*"*(lines - i - 1))
-    if dir == "sand":
+    elif dir == "sand":
         for i in range(1, lines + 1):
             actualLines.append(" "*(-1 + i) + "*"*(lines - i) + "*" + "*"*(lines - i))
+        for i in range(1, lines + 1):
+            actualLines.append(" "*(lines-i) + "*"*(i-1) + "*" + "*"*(i-1))
+    else:
         for i in range(1, lines + 1):
             actualLines.append(" "*(lines-i) + "*"*(i-1) + "*" + "*"*(i-1))
     return render_template("triangle.html", triangle=actualLines)
