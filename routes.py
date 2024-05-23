@@ -115,10 +115,11 @@ def planes():     # ROUTE FUNCTION
 def plane(plane_id):
     connection = sqlite3.connect('planeWIKIDB.db')
     cursor = connection.cursor()
-    if request.method == "POST":
+    print("Zero")
+    if request.method == "POST" or request.method == "GET":
         print("One")
         rating = int(request.form["rating"])
-        print("TWO")
+        print("Two")
         cursor.execute("""
             UPDATE popular
             SET ratings = ratings + ?, totalratings = totalratings + 1
@@ -127,11 +128,13 @@ def plane(plane_id):
         connection.commit()
     cursor.execute("SELECT * FROM Plane where id = ?", (plane_id,))
     plane = cursor.fetchone()
+    print("Three")
     cursor.execute("SELECT opened FROM popular WHERE pid = ?", (plane_id,))
     opened = cursor.fetchone()
     opened = opened[0] + 1
     cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;",
                    (opened, plane_id,))
+    print("Four")
     connection.commit()
     connection.close()
     return render_template('plane.html', planename=plane[1], planedesc=plane[2], planeimg=plane[3])

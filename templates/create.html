@@ -1,7 +1,7 @@
 {% extends 'layout.html' %} 
 
 {% block content %} 
-<form method="POST" action="/create">
+<form method="POST GET" action="/create">
     <label for="PlaneEngine">Plane or Engine</label> <br>
     <select name="PlaneEngine" id="PlaneEngine">
         <option value="plane">Plane</option>
@@ -11,7 +11,6 @@
     <input type="text" name="name" id="name"> <br>
     <label for="description">Description</label> <br> 
     <input type="text" name="description" id="description"> <br>
-    
     <label for="password">Password</label> <br> 
     <input type="text" name="password" id="password"> <br>
     <button type="submit">Submit</button>
