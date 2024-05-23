@@ -115,6 +115,16 @@ def planes():     # ROUTE FUNCTION
 def plane(plane_id):
     connection = sqlite3.connect('planeWIKIDB.db')
     cursor = connection.cursor()
+    if request.method == "POST":
+        print("One")
+        rating = int(request.form["rating"])
+        print("TWO")
+        cursor.execute("""
+            UPDATE popular
+            SET ratings = ratings + ?, totalratings = totalratings + 1
+            WHERE pid = ?
+        """, (rating, id))
+        connection.commit()
     cursor.execute("SELECT * FROM Plane where id = ?", (plane_id,))
     plane = cursor.fetchone()
     cursor.execute("SELECT opened FROM popular WHERE pid = ?", (plane_id,))
@@ -169,6 +179,14 @@ def engines():
 def engine(engine_id):
     connection = sqlite3.connect('planeWIKIDB.db')
     cursor = connection.cursor()
+    if request.method == "POST":
+        rating = int(request.form["rating"])
+        cursor.execute("""
+            UPDATE popular
+            SET ratings = ratings + ?, totalratings = totalratings + 1
+            WHERE eid = ?
+        """, (rating, id))
+        connection.commit()
     cursor.execute("SELECT * FROM Engine where id = ?", (engine_id,))
     engine = cursor.fetchone()
     cursor.execute("SELECT opened FROM popular WHERE eid = ?", (engine_id,))

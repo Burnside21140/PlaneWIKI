@@ -15,8 +15,14 @@
         <a href="">
             <h2>[Edit]</h2>
         </a>
-        <form action="/plane">
-            <button id="oneStar"> <img src="" alt="Star"> </button>
+        <form method="POST">
+            <div class="stars">
+                {% for i in range(1, 6) %}
+                <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}">
+                <label for="star{{ i }}">&#9733;</label>
+                {% endfor %}
+            </div>
+            <button type="submit">Submit Rating</button>
         </form>
     </div>
     <br>
