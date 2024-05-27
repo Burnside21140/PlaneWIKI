@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 
 @app.route("/", methods=["GET"]) # Page route
-def home():
+def home(): # Page function
     sort_option = request.args.get("Sort", "new") # Fetching the desired sort method
     connection = sqlite3.connect('planeWIKIDB.db') # Connecting to the database for SQL querys
     cursor = connection.cursor()
@@ -73,78 +73,83 @@ def home():
     return render_template("home.html", pages=pages, sort_option=sort_option) # Rendering the html page
 
 
-@app.route("/planes")  # ROUTE DECORATOR
-def planes():     # ROUTE FUNCTION
-    sort_option = request.args.get("Sort", "new")
-    connection = sqlite3.connect('planeWIKIDB.db')
-    cursor = connection.cursor()
-    if sort_option == "new":
+@app.route("/planes") # Page route
+def planes(): # Page function
+    sort_option = request.args.get("Sort", "new") # Fetching the sorting option
+    connection = sqlite3.connect('planeWIKIDB.db') # Connecting to the database
+    cursor = connection.cursor() 
+    if sort_option == "new": # Returning the planes in order of newest
         cursor.execute("SELECT * FROM Plane ORDER BY id DESC")
-    elif sort_option == "old":
+    elif sort_option == "old": # Returning the planes in order of oldest
         cursor.execute("SELECT * FROM Plane ORDER BY id ASC")
-    elif sort_option == "mostViews":
+    elif sort_option == "mostViews": # Returning the planes in order of most views
         cursor.execute("""
             SELECT Plane.id, Plane.name, Plane.description, Plane.picture
             FROM Plane
             LEFT JOIN popular ON Plane.id = popular.pid
             ORDER BY popular.opened DESC
         """)
-    elif sort_option == "leastViews":
+    elif sort_option == "leastViews": # Returning the planes in order of least views
         cursor.execute("""
             SELECT Plane.id, Plane.name, Plane.description, Plane.picture
             FROM Plane
             LEFT JOIN popular ON Plane.id = popular.pid
             ORDER BY popular.opened ASC
         """)
-    elif sort_option == "A-Z":
+    elif sort_option == "A-Z": # Returning the planes in order of A-Z
         cursor.execute("SELECT * FROM Plane ORDER BY name ASC")
-    elif sort_option == "Z-A":
+    elif sort_option == "Z-A": # Returning the planes in order of Z-A
         cursor.execute("SELECT * FROM Plane ORDER BY name DESC")
-    else:
+    else: # Incase of no order option selected return all planes by newest
         cursor.execute("SELECT * FROM Plane")
-    planes = cursor.fetchall()
-    connection.close()
-    planelist = []
-    for plane in planes:
-        item = [plane[0], plane[1], plane[2], plane[3]]
-        planelist.append(item)
-    return render_template("planes.html", planes=planelist, sort_option=sort_option)
+    planes = cursor.fetchall() # Fetech results from SQL query
+    connection.close() # Close the database connection
+    planelist = [] # What information we'll give to the html page
+    for plane in planes: # Going through the SQL results to get the information we want
+        item = [plane[0], plane[1], plane[2], plane[3]] # Selection the ID, Name, Discription, and Image respectively
+        planelist.append(item) # Adding the data to the 'planelist' list in a nested list
+    return render_template("planes.html", planes=planelist, sort_option=sort_option) # Rendering the HTML page
 
 
-@app.route("/plane/<string:plane_id>", methods=["GET", "POST"])
-def plane(plane_id):
-    connection = sqlite3.connect('planeWIKIDB.db')
-    cursor = connection.cursor()
-    if request.method == "POST":
-        rating = request.form.get("rating")
-        if rating:
-            rating = int(rating)
-            cursor.execute("SELECT * FROM popular WHERE pid=?", (plane_id,))
-            result = cursor.fetchone()
-            if result:
+@app.route("/plane/<string:plane_id>", methods=["GET", "POST"]) # Page route with the desired methods
+def plane(plane_id): # Page function
+    connection = sqlite3.connect('planeWIKIDB.db') # Connecting to the database
+    cursor = connection.cursor() 
+    if request.method == "POST": # Receiving the rating given
+        rating = request.form.get("rating") # Receiving the value of the rating
+        if rating: # Checking that there is actually a rating
+            rating = int(rating) # Turning the value into a interger value
+            cursor.execute("SELECT * FROM popular WHERE pid=?", (plane_id,)) # Checking that the plane does exist in the popular table
+            result = cursor.fetchone() # Fetching any results
+            if result: # If the plane does exist in the popular table
                 cursor.execute("""
                     UPDATE popular
                     SET ratings = ratings + ?, totalratings = totalratings + 1
                     WHERE pid = ?
-                """, (rating, plane_id))
-            else:
+                """, (rating, plane_id)) # Adding the value of the rating and the amount of ratings to the plane in the popular table
+            else: # If the plane does not exist in the popular table
                 cursor.execute("""
                     INSERT INTO popular (pid, ratings, totalratings)
                     VALUES (?, ?, 1)
-                """, (plane_id, rating))
-            connection.commit()
-    cursor.execute("SELECT * FROM Plane WHERE id = ?", (plane_id,))
+                """, (plane_id, rating)) # Adding the plane into the popular table with its rating
+            connection.commit() # Commiting the changes to the database
+    cursor.execute("SELECT * FROM Plane WHERE id = ?", (plane_id,)) # Fetching the plane's information for the planes table
     plane = cursor.fetchone()
-    cursor.execute("SELECT opened FROM popular WHERE pid = ?", (plane_id,))
-    opened = cursor.fetchone()
-    if opened:
-        opened = opened[0] + 1
-        cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;", (opened, plane_id))
-        connection.commit()
-    connection.close()
-    if plane:
-        return render_template('plane.html', planename=plane[1], planedesc=plane[2], planeimg=plane[3])
-    else:
+    if plane: # Checking that the plane does in fact exist
+        cursor.execute("SELECT opened FROM popular WHERE pid = ?", (plane_id,)) # Fetching how many times the plane's page has been opened
+        opened = cursor.fetchone()
+        if opened: # Checking if the plane exists in the popular table and increasing the amount of times the page has been opened
+            opened = opened[0] + 1 # Adding the values
+            cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;", (opened, plane_id)) # Putting the new value into the table
+        else: # If the plane does not exist in the popular table
+                cursor.execute("""
+                    INSERT INTO popular (pid, opened)
+                    VALUES (?, 1)
+                """, (plane_id,)) # Adding the plane into the popular table with its 1 view (times opened)
+        connection.commit() # Commiting the new changes
+        connection.close() # Closing connection to the database
+        return render_template('plane.html', planename=plane[1], planedesc=plane[2], planeimg=plane[3]) # Rendering the HTML page
+    else: # If the plane does not exist return a 404 error
         return "Plane not found", 404
 
 
