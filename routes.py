@@ -111,33 +111,42 @@ def planes():     # ROUTE FUNCTION
     return render_template("planes.html", planes=planelist, sort_option=sort_option)
 
 
-@app.route("/plane/<string:plane_id>")
+@app.route("/plane/<string:plane_id>", methods=["GET", "POST"])
 def plane(plane_id):
     connection = sqlite3.connect('planeWIKIDB.db')
     cursor = connection.cursor()
-    print("Zero")
-    if request.method == "POST" or request.method == "GET":
-        print("One")
-        rating = int(request.form["rating"])
-        print("Two")
-        cursor.execute("""
-            UPDATE popular
-            SET ratings = ratings + ?, totalratings = totalratings + 1
-            WHERE pid = ?
-        """, (rating, id))
-        connection.commit()
-    cursor.execute("SELECT * FROM Plane where id = ?", (plane_id,))
+    if request.method == "POST":
+        rating = request.form.get("rating")
+        if rating:
+            rating = int(rating)
+            cursor.execute("SELECT * FROM popular WHERE pid=?", (plane_id,))
+            result = cursor.fetchone()
+            if result:
+                cursor.execute("""
+                    UPDATE popular
+                    SET ratings = ratings + ?, totalratings = totalratings + 1
+                    WHERE pid = ?
+                """, (rating, plane_id))
+            else:
+                cursor.execute("""
+                    INSERT INTO popular (pid, ratings, totalratings)
+                    VALUES (?, ?, 1)
+                """, (plane_id, rating))
+            connection.commit()
+    cursor.execute("SELECT * FROM Plane WHERE id = ?", (plane_id,))
     plane = cursor.fetchone()
-    print("Three")
     cursor.execute("SELECT opened FROM popular WHERE pid = ?", (plane_id,))
     opened = cursor.fetchone()
-    opened = opened[0] + 1
-    cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;",
-                   (opened, plane_id,))
-    print("Four")
-    connection.commit()
+    if opened:
+        opened = opened[0] + 1
+        cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;", (opened, plane_id))
+        connection.commit()
     connection.close()
-    return render_template('plane.html', planename=plane[1], planedesc=plane[2], planeimg=plane[3])
+    if plane:
+        return render_template('plane.html', planename=plane[1], planedesc=plane[2], planeimg=plane[3])
+    else:
+        return "Plane not found", 404
+
 
 
 @app.route("/engines", methods=["GET"])
@@ -178,28 +187,42 @@ def engines():
     return render_template("engines.html", engines=enginelist, sort_option=sort_option)
 
 
-@app.route("/engine/<string:engine_id>")
+@app.route("/engine/<string:engine_id>", methods=["GET", "POST"])
 def engine(engine_id):
     connection = sqlite3.connect('planeWIKIDB.db')
     cursor = connection.cursor()
     if request.method == "POST":
-        rating = int(request.form["rating"])
-        cursor.execute("""
-            UPDATE popular
-            SET ratings = ratings + ?, totalratings = totalratings + 1
-            WHERE eid = ?
-        """, (rating, id))
-        connection.commit()
-    cursor.execute("SELECT * FROM Engine where id = ?", (engine_id,))
+        rating = request.form.get("rating")
+        if rating:
+            rating = int(rating)
+            cursor.execute("SELECT * FROM popular WHERE eid=?", (engine_id,))
+            result = cursor.fetchone()
+            if result:
+                cursor.execute("""
+                    UPDATE popular
+                    SET ratings = ratings + ?, totalratings = totalratings + 1
+                    WHERE eid = ?
+                """, (rating, engine_id))
+            else:
+                cursor.execute("""
+                    INSERT INTO popular (eid, ratings, totalratings)
+                    VALUES (?, ?, 1)
+                """, (engine_id, rating))
+            connection.commit()
+    cursor.execute("SELECT * FROM Engine WHERE id = ?", (engine_id,))
     engine = cursor.fetchone()
     cursor.execute("SELECT opened FROM popular WHERE eid = ?", (engine_id,))
     opened = cursor.fetchone()
-    opened = opened[0] + 1
-    cursor.execute("UPDATE popular SET opened = ? WHERE eid = ?;",
-                   (opened, engine_id,))
-    connection.commit()
+    if opened:
+        opened = opened[0] + 1
+        cursor.execute("UPDATE popular SET opened = ? WHERE eid = ?;", (opened, engine_id))
+        connection.commit()
     connection.close()
-    return render_template('engine.html', enginename=engine[1], enginedesc=engine[2], engineimg=engine[3])
+    if engine:
+        return render_template('engine.html', enginename=engine[1], enginedesc=engine[2], engineimg=engine[3])
+    else:
+        return "Engine not found", 404
+
 
 
 # Route for the create page

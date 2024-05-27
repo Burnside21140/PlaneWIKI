@@ -11,6 +11,20 @@
         <img src="{{engineimg}}" alt="">
         <p>{{enginedesc}}</p>
     </div>
+    <div class="pe-header pe-section">
+        <a href="">
+            <h2>[Edit]</h2>
+        </a>
+        <form method="POST">
+            <div class="stars">
+                {% for i in range(1, 6) %}
+                <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}">
+                <label for="star{{ i }}">&#9733;</label>
+                {% endfor %}
+            </div>
+            <button type="submit">Submit Rating</button>
+        </form>
+    </div>
     <br>
 </div>
 {% endblock %}
