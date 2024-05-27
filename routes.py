@@ -6,26 +6,26 @@ import sqlite3
 app = Flask(__name__)
 
 
-@app.route("/", methods=["GET"])
+@app.route("/", methods=["GET"]) # Page route
 def home():
-    sort_option = request.args.get("Sort", "new")
-    connection = sqlite3.connect('planeWIKIDB.db')
+    sort_option = request.args.get("Sort", "new") # Fetching the desired sort method
+    connection = sqlite3.connect('planeWIKIDB.db') # Connecting to the database for SQL querys
     cursor = connection.cursor()
-    if sort_option == "new":
+    if sort_option == "new": # Returning all planes and engines in the order of newest to oldest
         query = """
             SELECT id, name, description, picture, 'plane' AS type, id AS sort_value FROM Plane
             UNION ALL
             SELECT id, name, description, picture, 'engine' AS type, id AS sort_value FROM Engine
             ORDER BY sort_value DESC
         """
-    elif sort_option == "old":
+    elif sort_option == "old": # Returning all planes and engines in the order of oldest to newest
         query = """
             SELECT id, name, description, picture, 'plane' AS type, id AS sort_value FROM Plane
             UNION ALL
             SELECT id, name, description, picture, 'engine' AS type, id AS sort_value FROM Engine
             ORDER BY sort_value ASC
         """
-    elif sort_option == "mostViews":
+    elif sort_option == "mostViews": # Returning all planes and engines in the order of most views
         query = """
             SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.opened, 0) AS sort_value
             FROM Plane
@@ -36,7 +36,7 @@ def home():
             LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY sort_value DESC
         """
-    elif sort_option == "leastViews":
+    elif sort_option == "leastViews": # Returning all planes and engines in the order of least views
         query = """
             SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.opened, 0) AS sort_value
             FROM Plane
@@ -47,30 +47,30 @@ def home():
             LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY sort_value ASC
         """
-    elif sort_option == "A-Z":
+    elif sort_option == "A-Z": # Returning all planes and engines in the order of A-Z
         query = """
             SELECT id, name, description, picture, 'plane' AS type, name AS sort_value FROM Plane
             UNION ALL
             SELECT id, name, description, picture, 'engine' AS type, name AS sort_value FROM Engine
             ORDER BY sort_value COLLATE NOCASE ASC
         """
-    elif sort_option == "Z-A":
+    elif sort_option == "Z-A": # Returning all planes and engines in the order of Z-A
         query = """
             SELECT id, name, description, picture, 'plane' AS type, name AS sort_value FROM Plane
             UNION ALL
             SELECT id, name, description, picture, 'engine' AS type, name AS sort_value FROM Engine
             ORDER BY sort_value COLLATE NOCASE DESC
         """
-    else:
+    else:  # Incase of no option selected, returning all planes and engines in the order of newest to oldest
         query = """
             SELECT id, name, description, picture, 'plane' AS type, id AS sort_value FROM Plane
             UNION ALL
             SELECT id, name, description, picture, 'engine' AS type, id AS sort_value FROM Engine
         """
-    cursor.execute(query)
-    pages = cursor.fetchall()
-    connection.close()
-    return render_template("home.html", pages=pages, sort_option=sort_option)
+    cursor.execute(query) # Executing the SQL query
+    pages = cursor.fetchall() # Fetching results
+    connection.close() # Closing the database
+    return render_template("home.html", pages=pages, sort_option=sort_option) # Rendering the html page
 
 
 @app.route("/planes")  # ROUTE DECORATOR
