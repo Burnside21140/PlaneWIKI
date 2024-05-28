@@ -6,11 +6,16 @@ import sqlite3
 app = Flask(__name__)
 
 
-@app.route("/", methods=["GET"]) # Page route
-def home(): # Page function
-    sort_option = request.args.get("Sort", "new") # Fetching the desired sort method
-    connection = sqlite3.connect('planeWIKIDB.db') # Connecting to the database for SQL querys
+def databaseOpen(): # Connecting to the database for SQL querys
+    connection = sqlite3.connect('planeWIKIDB.db')
     cursor = connection.cursor()
+    return connection,cursor
+
+
+@app.route("/", methods=["GET"]) # Page route and form methods
+def home(): # Page function
+    sort_option = request.args.get("Sort", "new") # Fetching the desired sort method to fetch the planes and engines in the corresponding order
+    connection, cursor = databaseOpen() # Connecting to the database
     if sort_option == "new": # Returning all planes and engines in the order of newest to oldest
         query = """
             SELECT id, name, description, picture, 'plane' AS type, id AS sort_value FROM Plane
@@ -67,17 +72,16 @@ def home(): # Page function
             UNION ALL
             SELECT id, name, description, picture, 'engine' AS type, id AS sort_value FROM Engine
         """
-    cursor.execute(query) # Executing the SQL query
-    pages = cursor.fetchall() # Fetching results
-    connection.close() # Closing the database
-    return render_template("home.html", pages=pages, sort_option=sort_option) # Rendering the html page
+    cursor.execute(query)
+    pages = cursor.fetchall()
+    connection.close()
+    return render_template("home.html", pages=pages, sort_option=sort_option) # Rendering the html page with pages as both the planes and engines, sort_option to get the html to show which sort option is currently selected
 
 
 @app.route("/planes") # Page route
 def planes(): # Page function
-    sort_option = request.args.get("Sort", "new") # Fetching the sorting option
-    connection = sqlite3.connect('planeWIKIDB.db') # Connecting to the database
-    cursor = connection.cursor() 
+    sort_option = request.args.get("Sort", "new") # Fetching the desired sort method to fetch the planes and engines in the corresponding order
+    connection, cursor = databaseOpen() # Connecting to the database
     if sort_option == "new": # Returning the planes in order of newest
         cursor.execute("SELECT * FROM Plane ORDER BY id DESC")
     elif sort_option == "old": # Returning the planes in order of oldest
@@ -102,117 +106,98 @@ def planes(): # Page function
         cursor.execute("SELECT * FROM Plane ORDER BY name DESC")
     else: # Incase of no order option selected return all planes by newest
         cursor.execute("SELECT * FROM Plane")
-    planes = cursor.fetchall() # Fetech results from SQL query
-    connection.close() # Close the database connection
+    planes = cursor.fetchall()
+    connection.close()
     planelist = [] # What information we'll give to the html page
     for plane in planes: # Going through the SQL results to get the information we want
-        item = [plane[0], plane[1], plane[2], plane[3]] # Selection the ID, Name, Discription, and Image respectively
-        planelist.append(item) # Adding the data to the 'planelist' list in a nested list
-    return render_template("planes.html", planes=planelist, sort_option=sort_option) # Rendering the HTML page
+        item = [plane[0], plane[1], plane[2], plane[3]] # Selecting the ID, Name, Discription, and Image respectively as a nested list
+        planelist.append(item)
+    return render_template("planes.html", planes=planelist, sort_option=sort_option) # Rendering the HTML page with planes as the different planes with the required data and sort_option for the html to show which sort option is selected
 
 
 @app.route("/plane/<string:plane_id>", methods=["GET", "POST"]) # Page route with the desired methods
 def plane(plane_id): # Page function
-    connection = sqlite3.connect('planeWIKIDB.db') # Connecting to the database
-    cursor = connection.cursor() 
+    connection, cursor = databaseOpen() # Connecting to the database
     if request.method == "POST": # Receiving the rating given
         rating = request.form.get("rating") # Receiving the value of the rating
-        if rating: # Checking that there is actually a rating
-            rating = int(rating) # Turning the value into a interger value
-            cursor.execute("SELECT * FROM popular WHERE pid=?", (plane_id,)) # Checking that the plane does exist in the popular table
-            result = cursor.fetchone() # Fetching any results
-            if result: # If the plane does exist in the popular table
-                cursor.execute("""
-                    UPDATE popular
-                    SET ratings = ratings + ?, totalratings = totalratings + 1
-                    WHERE pid = ?
-                """, (rating, plane_id)) # Adding the value of the rating and the amount of ratings to the plane in the popular table
-            else: # If the plane does not exist in the popular table
-                cursor.execute("""
-                    INSERT INTO popular (pid, ratings, totalratings)
-                    VALUES (?, ?, 1)
-                """, (plane_id, rating)) # Adding the plane into the popular table with its rating
-            connection.commit() # Commiting the changes to the database
+        if rating:
+            rating = int(rating)
+            cursor.execute("""
+                UPDATE popular
+                SET ratings = ratings + ?, totalratings = totalratings + 1
+                WHERE pid = ?
+            """, (rating, plane_id)) # Adding the value of the rating and the amount of ratings to the plane in the popular table
+            connection.commit()
     cursor.execute("SELECT * FROM Plane WHERE id = ?", (plane_id,)) # Fetching the plane's information for the planes table
     plane = cursor.fetchone()
     if plane: # Checking that the plane does in fact exist
         cursor.execute("SELECT opened FROM popular WHERE pid = ?", (plane_id,)) # Fetching how many times the plane's page has been opened
         opened = cursor.fetchone()
         if opened: # Checking if the plane exists in the popular table and increasing the amount of times the page has been opened
-            opened = opened[0] + 1 # Adding the values
-            cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;", (opened, plane_id)) # Putting the new value into the table
-        else: # If the plane does not exist in the popular table
+            opened = opened[0] + 1
+            cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;", (opened, plane_id))
+        else: # If the plane does not exist in the popular table add the plane into the popular table with its 1 view (times opened)
                 cursor.execute("""
                     INSERT INTO popular (pid, opened)
                     VALUES (?, 1)
-                """, (plane_id,)) # Adding the plane into the popular table with its 1 view (times opened)
-        connection.commit() # Commiting the new changes
-        connection.close() # Closing connection to the database
-        return render_template('plane.html', planename=plane[1], planedesc=plane[2], planeimg=plane[3]) # Rendering the HTML page
+                """, (plane_id,))
+        connection.commit()
+        connection.close()
+        return render_template('plane.html', planename=plane[1], planedesc=plane[2], planeimg=plane[3])
     else: # If the plane does not exist return a 404 error
         return "Plane not found", 404
 
 
 
-@app.route("/engines", methods=["GET"])
-def engines():
-    sort_option = request.args.get("Sort", "new")
-    connection = sqlite3.connect('planeWIKIDB.db')
-    cursor = connection.cursor()
-    if sort_option == "new":
+@app.route("/engines", methods=["GET"]) # Page route and form methods
+def engines(): # Page function
+    sort_option = request.args.get("Sort", "new") # Fetching the sorting option
+    connection, cursor = databaseOpen() # Connecting to the database
+    if sort_option == "new": # Fetching the engines sort by newest
         cursor.execute("SELECT * FROM Engine ORDER BY id DESC")
-    elif sort_option == "old":
+    elif sort_option == "old": # Fetching the engines sort by oldest
         cursor.execute("SELECT * FROM Engine ORDER BY id ASC")
-    elif sort_option == "mostViews":
+    elif sort_option == "mostViews": # Fetching the engines sort by most views
         cursor.execute("""
             SELECT Engine.id, Engine.name, Engine.description, Engine.picture
             FROM Engine
             LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY popular.opened DESC
         """)
-    elif sort_option == "leastViews":
+    elif sort_option == "leastViews": # Fetching the engines sort by least views
         cursor.execute("""
             SELECT Engine.id, Engine.name, Engine.description, Engine.picture
             FROM Engine
             LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY popular.opened ASC
         """)
-    elif sort_option == "A-Z":
+    elif sort_option == "A-Z": # Fetching the engines sort by A-Z
         cursor.execute("SELECT * FROM Engine ORDER BY name ASC")
-    elif sort_option == "Z-A":
+    elif sort_option == "Z-A": # Fetching the engines sort by Z-A
         cursor.execute("SELECT * FROM Engine ORDER BY name DESC")
-    else:
+    else: # Incase of no search option selected fetch engines in order of newest
         cursor.execute("SELECT * FROM Engine")
     engines = cursor.fetchall()
     connection.close()
-    enginelist = []
-    for engine in engines:
-        item = [engine[0], engine[1], engine[2], engine[3]]
+    enginelist = [] # The list data that'll be passing to the HTML
+    for engine in engines: 
+        item = [engine[0], engine[1], engine[2], engine[3]] # Adding the ID, Name, Description, and Picture of the engine as a nested list to enginelist
         enginelist.append(item)
-    return render_template("engines.html", engines=enginelist, sort_option=sort_option)
+    return render_template("engines.html", engines=enginelist, sort_option=sort_option) # Rendering the HTML page with engines as the different engines with the required data and sort_option for the html to show which sort option is selected
 
 
-@app.route("/engine/<string:engine_id>", methods=["GET", "POST"])
-def engine(engine_id):
-    connection = sqlite3.connect('planeWIKIDB.db')
-    cursor = connection.cursor()
+@app.route("/engine/<string:engine_id>", methods=["GET", "POST"]) # Page route and form methods
+def engine(engine_id): # Page function
+    connection, cursor = databaseOpen() # Connecting to the database
     if request.method == "POST":
-        rating = request.form.get("rating")
+        rating = request.form.get("rating") # Getting the rating given by the user
         if rating:
             rating = int(rating)
-            cursor.execute("SELECT * FROM popular WHERE eid=?", (engine_id,))
-            result = cursor.fetchone()
-            if result:
-                cursor.execute("""
-                    UPDATE popular
-                    SET ratings = ratings + ?, totalratings = totalratings + 1
-                    WHERE eid = ?
-                """, (rating, engine_id))
-            else:
-                cursor.execute("""
-                    INSERT INTO popular (eid, ratings, totalratings)
-                    VALUES (?, ?, 1)
-                """, (engine_id, rating))
+            cursor.execute("""
+                UPDATE popular
+                SET ratings = ratings + ?, totalratings = totalratings + 1
+                WHERE eid = ?
+            """, (rating, engine_id))
             connection.commit()
     cursor.execute("SELECT * FROM Engine WHERE id = ?", (engine_id,))
     engine = cursor.fetchone()
@@ -241,8 +226,7 @@ def create():
         password = request.form["password"]
 
         # Insert into the database
-        connection = sqlite3.connect('planeWIKIDB.db')
-        cursor = connection.cursor()
+        connection, cursor = databaseOpen() # Connecting to the database
         if plane_engine == "plane":
             cursor.execute("INSERT INTO plane (name, description, password) VALUES (?, ?, ?)",
                            (name, description, password))
