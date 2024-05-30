@@ -1,18 +1,18 @@
 {% extends 'layout.html' %} 
 
 {% block content %} 
-<form method="POST GET" action="/create">
+<form method="POST" action="/create">
     <label for="PlaneEngine">Plane or Engine</label> <br>
     <select name="PlaneEngine" id="PlaneEngine">
         <option value="plane">Plane</option>
         <option value="engine">Engine</option>
     </select> <br>
     <label for="name">Name</label> <br> 
-    <input type="text" name="name" id="name"> <br>
+    <input type="text" id="name" name="name"> <br>
     <label for="description">Description</label> <br> 
-    <input type="text" name="description" id="description"> <br>
+    <input type="text" id="description" name="description"> <br>
     <label for="password">Password</label> <br> 
-    <input type="text" name="password" id="password"> <br>
+    <input type="password" id="password" name="password"> <br>
     <button type="submit">Submit</button>
 </form>
 {% endblock %}

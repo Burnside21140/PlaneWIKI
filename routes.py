@@ -215,50 +215,43 @@ def engine(engine_id): # Page function
 
 
 
-# Route for the create page
 @app.route("/create", methods=["GET", "POST"])
 def create():
     if request.method == "POST":
         # Get form data
-        plane_engine = request.form["PlaneEngine"]
-        name = request.form["name"]
-        description = request.form["description"]
-        password = request.form["password"]
-
+        plane_engine = request.form.get("PlaneEngine")
+        name = request.form.get("name")
+        description = request.form.get("description")
+        password = request.form.get("password")
         # Insert into the database
-        connection, cursor = databaseOpen() # Connecting to the database
+        connection, cursor = databaseOpen()  # Connecting to the database
         if plane_engine == "plane":
             cursor.execute("INSERT INTO plane (name, description, password) VALUES (?, ?, ?)",
                            (name, description, password))
             connection.commit()
-            cursor.execute(
-                "SELECT id FROM plane where name = ? AND description = ? AND password = ?", (name, description, password))
+            cursor.execute("SELECT id FROM plane WHERE name = ? AND description = ? AND password = ?",
+                           (name, description, password))
             id = cursor.fetchone()
             cursor.execute("INSERT INTO popular (pid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)",
                            (id[0],))
             connection.commit()
-        if plane_engine == "engine":
+        elif plane_engine == "engine":
             cursor.execute("INSERT INTO engine (name, description, password) VALUES (?, ?, ?)",
                            (name, description, password))
             connection.commit()
-            cursor.execute(
-                "SELECT id FROM engine where name = ? AND description = ? AND password = ?", (name, description, password))
+            cursor.execute("SELECT id FROM engine WHERE name = ? AND description = ? AND password = ?",
+                           (name, description, password))
             id = cursor.fetchone()
             cursor.execute("INSERT INTO popular (eid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)",
                            (id[0],))
             connection.commit()
-        # Redirect to a success page or another route
+        connection.close()
         return render_template("created.html")
     else:
         return render_template("create.html")
 
 
-# Route for the success page
-@app.route("/success")
-def success():
-    return "Form submitted successfully!"
-
-
+# Easter egg code
 @app.route("/triangle/<string:lines>/<string:dir>")
 def triangles(lines, dir):
     lines = int(lines)
@@ -297,6 +290,7 @@ def triangles(lines, dir):
     return render_template("triangle.html", triangle=actualLines)
 
 
+# Easter egg code
 @app.route("/asciiart/<string:letters>/")
 def asciiArt(letters):
     asciiLeters1 = [["q", " ██████╗ "], ["w", "██╗    ██╗"]]
