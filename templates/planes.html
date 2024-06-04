@@ -33,7 +33,11 @@
         <div class="pe-section">
             <div class="pe-header">
                 <h1>{{plane.1}}</h1>
-                <h1>Avg Rating: {{ "%.1f" % plane.4 }}/5</h1>
+                {% if plane[4] is not none %}
+                    <h1>Average Rating: {{ plane[4] | round(2) }}/5</h1>
+                {% else %}
+                    <h1>Average Rating: 0/5</h1>
+                {% endif %}
             </div>
             <div class="pe-info">
                 <img src="" alt="">
