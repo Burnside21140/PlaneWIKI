@@ -18,167 +18,201 @@ def home(): # Page function
     connection, cursor = databaseOpen() # Connecting to the database
     if sort_option == "new": # Returning all planes and engines in the order of newest to oldest
         query = """
-            SELECT id, name, description, picture, 'plane' AS type, id AS sort_value FROM Plane
+            SELECT id, name, description, picture, 'plane' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
             UNION ALL
-            SELECT id, name, description, picture, 'engine' AS type, id AS sort_value FROM Engine
+            SELECT id, name, description, picture, 'engine' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY sort_value DESC
         """
     elif sort_option == "old": # Returning all planes and engines in the order of oldest to newest
         query = """
-            SELECT id, name, description, picture, 'plane' AS type, id AS sort_value FROM Plane
+            SELECT id, name, description, picture, 'plane' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
             UNION ALL
-            SELECT id, name, description, picture, 'engine' AS type, id AS sort_value FROM Engine
+            SELECT id, name, description, picture, 'engine' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY sort_value ASC
         """
     elif sort_option == "mostViews": # Returning all planes and engines in the order of most views
         query = """
-            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.opened, 0) AS sort_value
+            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
             FROM Plane
             LEFT JOIN popular ON Plane.id = popular.pid
             UNION ALL
-            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.opened, 0) AS sort_value
+            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
             FROM Engine
             LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY sort_value DESC
         """
     elif sort_option == "leastViews": # Returning all planes and engines in the order of least views
         query = """
-            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.opened, 0) AS sort_value
+            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
             FROM Plane
             LEFT JOIN popular ON Plane.id = popular.pid
             UNION ALL
-            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.opened, 0) AS sort_value
+            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
             FROM Engine
             LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY sort_value ASC
         """
     elif sort_option == "A-Z": # Returning all planes and engines in the order of A-Z
         query = """
-            SELECT id, name, description, picture, 'plane' AS type, name AS sort_value FROM Plane
+            SELECT id, name, description, picture, 'plane' AS type, name AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
             UNION ALL
-            SELECT id, name, description, picture, 'engine' AS type, name AS sort_value FROM Engine
+            SELECT id, name, description, picture, 'engine' AS type, name AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY sort_value COLLATE NOCASE ASC
         """
     elif sort_option == "Z-A": # Returning all planes and engines in the order of Z-A
         query = """
-            SELECT id, name, description, picture, 'plane' AS type, name AS sort_value FROM Plane
+            SELECT id, name, description, picture, 'plane' AS type, name AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
             UNION ALL
-            SELECT id, name, description, picture, 'engine' AS type, name AS sort_value FROM Engine
+            SELECT id, name, description, picture, 'engine' AS type, name AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY sort_value COLLATE NOCASE DESC
         """
-    elif sort_option == "bestRatings":
+    elif sort_option == "bestRatings": # Returning all planes and engines in the order of best ratings
         query = """
-            SELECT p.id, p.name, p.description, p.picture, 'plane' AS type,
-                   (pop.ratings * 1.0 / pop.totalratings) AS sort_value
-            FROM Plane p JOIN popular pop ON p.id = pop.pid
+            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+            FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
             UNION ALL
-            SELECT e.id, e.name, e.description, e.picture, 'engine' AS type,
-                   (pop.ratings * 1.0 / pop.totalratings) AS sort_value
-            FROM Engine e JOIN popular pop ON e.id = pop.eid
+            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+            FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY sort_value DESC
         """
-    elif sort_option == "worstRatings":
+    elif sort_option == "worstRatings": # Returning all planes and engines in the order of worst ratings
         query = """
-            SELECT p.id, p.name, p.description, p.picture, 'plane' AS type,
-                   (pop.ratings * 1.0 / pop.totalratings) AS sort_value
-            FROM Plane p JOIN popular pop ON p.id = pop.pid
+            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+            FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
             UNION ALL
-            SELECT e.id, e.name, e.description, e.picture, 'engine' AS type,
-                   (pop.ratings * 1.0 / pop.totalratings) AS sort_value
-            FROM Engine e JOIN popular pop ON e.id = pop.eid
+            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+            FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY sort_value ASC
         """
-    elif sort_option == "mostRatings":
+    elif sort_option == "mostRatings": # Returning all planes and engines in the order of most ratings
         query = """
-            SELECT p.id, p.name, p.description, p.picture, 'plane' AS type, pop.totalratings AS sort_value
-            FROM Plane p JOIN popular pop ON p.id = pop.pid
+            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+            FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
             UNION ALL
-            SELECT e.id, e.name, e.description, e.picture, 'engine' AS type, pop.totalratings AS sort_value
-            FROM Engine e JOIN popular pop ON e.id = pop.eid
+            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+            FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY sort_value DESC
         """
-    elif sort_option == "leastRatings":
+    elif sort_option == "leastRatings": # Returning all planes and engines in the order of least ratings
         query = """
-            SELECT p.id, p.name, p.description, p.picture, 'plane' AS type, pop.totalratings AS sort_value
-            FROM Plane p JOIN popular pop ON p.id = pop.pid
+            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+            FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
             UNION ALL
-            SELECT e.id, e.name, e.description, e.picture, 'engine' AS type, pop.totalratings AS sort_value
-            FROM Engine e JOIN popular pop ON e.id = pop.eid
+            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+            FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY sort_value ASC
         """
     else:  # Incase of no option selected, returning all planes and engines in the order of newest to oldest
         query = """
-            SELECT id, name, description, picture, 'plane' AS type, id AS sort_value FROM Plane
+            SELECT id, name, description, picture, 'plane' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
             UNION ALL
-            SELECT id, name, description, picture, 'engine' AS type, id AS sort_value FROM Engine
+            SELECT id, name, description, picture, 'engine' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
+            ORDER BY sort_value DESC
         """
-    cursor.execute(query)
-    pages = cursor.fetchall()
-    connection.close()
-    return render_template("home.html", pages=pages, sort_option=sort_option) # Rendering the html page with pages as both the planes and engines, sort_option to get the html to show which sort option is currently selected
+    
+    cursor.execute(query) # Executing the query
+    pages = cursor.fetchall() # Fetching all the rows
+    connection.close() # Closing the connection
+    return render_template("home.html", pages=pages, sort_option=sort_option) # Rendering the home.html file and passing the required variables for Jinja template
 
 
-@app.route("/planes") # Page route
-def planes(): # Page function
-    sort_option = request.args.get("Sort", "new") # Fetching the desired sort method to fetch the planes and engines in the corresponding order
-    connection, cursor = databaseOpen() # Connecting to the database
-    if sort_option == "new": # Returning the planes in order of newest
-        cursor.execute("SELECT * FROM Plane ORDER BY id DESC")
-    elif sort_option == "old": # Returning the planes in order of oldest
-        cursor.execute("SELECT * FROM Plane ORDER BY id ASC")
-    elif sort_option == "mostViews": # Returning the planes in order of most views
-        cursor.execute("""
-            SELECT Plane.id, Plane.name, Plane.description, Plane.picture
+@app.route("/planes")
+def planes():
+    sort_option = request.args.get("Sort", "new")
+    connection, cursor = databaseOpen()
+
+    if sort_option == "new": # Returning all planes in the order of newest to oldest
+        query = """
+            SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
+            ORDER BY Plane.id DESC
+        """
+    elif sort_option == "old": # Returning all planes in the order of oldest to newest
+        query = """
+            SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
+            ORDER BY Plane.id ASC
+        """
+    elif sort_option == "mostViews": # Returning all planes in the order of most views
+        query = """
+            SELECT Plane.*, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
             FROM Plane
             LEFT JOIN popular ON Plane.id = popular.pid
-            ORDER BY popular.opened DESC
-        """)
-    elif sort_option == "leastViews": # Returning the planes in order of least views
-        cursor.execute("""
-            SELECT Plane.id, Plane.name, Plane.description, Plane.picture
+            ORDER BY sort_value DESC
+        """
+    elif sort_option == "leastViews": # Returning all planes in the order of least views
+        query = """
+            SELECT Plane.*, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
             FROM Plane
             LEFT JOIN popular ON Plane.id = popular.pid
-            ORDER BY popular.opened ASC
-        """)
-    elif sort_option == "A-Z": # Returning the planes in order of A-Z
-        cursor.execute("SELECT * FROM Plane ORDER BY name ASC")
-    elif sort_option == "Z-A": # Returning the planes in order of Z-A
-        cursor.execute("SELECT * FROM Plane ORDER BY name DESC")
-    elif sort_option == "bestRatings":
-        cursor.execute("""
-            SELECT p.id, p.name, p.description, p.picture,
-                   (pop.ratings * 1.0 / pop.totalratings) AS avg_rating
-            FROM Plane p JOIN popular pop ON p.id = pop.pid
+            ORDER BY sort_value ASC
+        """
+    elif sort_option == "A-Z": # Returning all planes in the order of A-Z
+        query = """
+            SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
+            ORDER BY Plane.name COLLATE NOCASE ASC
+        """
+    elif sort_option == "Z-A": # Returning all planes in the order of Z-A
+        query = """
+            SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
+            ORDER BY Plane.name COLLATE NOCASE DESC
+        """
+    elif sort_option == "bestRatings": # Returning all planes in the order of best ratings
+        query = """
+            SELECT Plane.*, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
             ORDER BY avg_rating DESC
-        """)
-    elif sort_option == "worstRatings":
-        cursor.execute("""
-            SELECT p.id, p.name, p.description, p.picture,
-                   (pop.ratings * 1.0 / pop.totalratings) AS avg_rating
-            FROM Plane p JOIN popular pop ON p.id = pop.pid
+        """
+    elif sort_option == "worstRatings": # Returning all planes in the order of worst ratings
+        query = """
+            SELECT Plane.*, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
             ORDER BY avg_rating ASC
-        """)
-    elif sort_option == "mostRatings":
-        cursor.execute("""
-            SELECT p.id, p.name, p.description, p.picture
-            FROM Plane p JOIN popular pop ON p.id = pop.pid
-            ORDER BY pop.totalratings DESC
-        """)
-    elif sort_option == "leastRatings":
-        cursor.execute("""
-            SELECT p.id, p.name, p.description, p.picture
-            FROM Plane p JOIN popular pop ON p.id = pop.pid
-            ORDER BY pop.totalratings ASC
-        """)
-    else: # Incase of no order option selected return all planes by newest
-        cursor.execute("SELECT * FROM Plane")
+        """
+    elif sort_option == "mostRatings": # Returning all planes in the order of most ratings
+        query = """
+            SELECT Plane.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
+            ORDER BY sort_value DESC
+        """
+    elif sort_option == "leastRatings": # Returning all planes in the order of least ratings
+        query = """
+            SELECT Plane.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
+            ORDER BY sort_value ASC
+        """
+    else:  # Incase of no option selected, returning all planes in the order of newest to oldest
+        query = """
+            SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
+            ORDER BY Plane.id DESC
+        """
+
+    cursor.execute(query)
     planes = cursor.fetchall()
     connection.close()
-    planelist = [] # What information we'll give to the html page
-    for plane in planes: # Going through the SQL results to get the information we want
-        item = [plane[0], plane[1], plane[2], plane[3]] # Selecting the ID, Name, Discription, and Image respectively as a nested list
-        planelist.append(item)
-    return render_template("planes.html", planes=planelist, sort_option=sort_option) # Rendering the HTML page with planes as the different planes with the required data and sort_option for the html to show which sort option is selected
+    planelist = [[plane[0], plane[1], plane[2], plane[3], plane[-1]] for plane in planes]
+    return render_template("planes.html", planes=planelist, sort_option=sort_option)
 
 
 @app.route("/plane/<string:plane_id>", methods=["GET", "POST"]) # Page route with the desired methods
@@ -215,67 +249,86 @@ def plane(plane_id): # Page function
 
 
 
-@app.route("/engines", methods=["GET"]) # Page route and form methods
-def engines(): # Page function
-    sort_option = request.args.get("Sort", "new") # Fetching the sorting option
-    connection, cursor = databaseOpen() # Connecting to the database
-    if sort_option == "new": # Fetching the engines sort by newest
-        cursor.execute("SELECT * FROM Engine ORDER BY id DESC")
-    elif sort_option == "old": # Fetching the engines sort by oldest
-        cursor.execute("SELECT * FROM Engine ORDER BY id ASC")
-    elif sort_option == "mostViews": # Fetching the engines sort by most views
-        cursor.execute("""
-            SELECT Engine.id, Engine.name, Engine.description, Engine.picture
+@app.route("/engines", methods=["GET"])
+def engines():
+    sort_option = request.args.get("Sort", "new")
+    connection, cursor = databaseOpen()
+
+    if sort_option == "new": # Returning all engines in the order of newest to oldest
+        query = """
+            SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
+            ORDER BY Engine.id DESC
+        """
+    elif sort_option == "old": # Returning all engines in the order of oldest to newest
+        query = """
+            SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
+            ORDER BY Engine.id ASC
+        """
+    elif sort_option == "mostViews": # Returning all engines in the order of most views
+        query = """
+            SELECT Engine.*, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
             FROM Engine
             LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY popular.opened DESC
-        """)
-    elif sort_option == "leastViews": # Fetching the engines sort by least views
-        cursor.execute("""
-            SELECT Engine.id, Engine.name, Engine.description, Engine.picture
+            ORDER BY sort_value DESC
+        """
+    elif sort_option == "leastViews": # Returning all engines in the order of least views
+        query = """
+            SELECT Engine.*, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
             FROM Engine
             LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY popular.opened ASC
-        """)
-    elif sort_option == "A-Z": # Fetching the engines sort by A-Z
-        cursor.execute("SELECT * FROM Engine ORDER BY name ASC")
-    elif sort_option == "Z-A": # Fetching the engines sort by Z-A
-        cursor.execute("SELECT * FROM Engine ORDER BY name DESC")
-    elif sort_option == "bestRatings":
-        cursor.execute("""
-            SELECT e.id, e.name, e.description, e.picture,
-                   (pop.ratings * 1.0 / pop.totalratings) AS avg_rating
-            FROM Engine e JOIN popular pop ON e.id = pop.eid
+            ORDER BY sort_value ASC
+        """
+    elif sort_option == "A-Z": # Returning all engines in the order of A-Z
+        query = """
+            SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
+            ORDER BY Engine.name COLLATE NOCASE ASC
+        """
+    elif sort_option == "Z-A": # Returning all engines in the order of Z-A
+        query = """
+            SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
+            ORDER BY Engine.name COLLATE NOCASE DESC
+        """
+    elif sort_option == "bestRatings": # Returning all engines in the order of best ratings
+        query = """
+            SELECT Engine.*, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY avg_rating DESC
-        """)
-    elif sort_option == "worstRatings":
-        cursor.execute("""
-            SELECT e.id, e.name, e.description, e.picture,
-                   (pop.ratings * 1.0 / pop.totalratings) AS avg_rating
-            FROM Engine e JOIN popular pop ON e.id = pop.eid
+        """
+    elif sort_option == "worstRatings": # Returning all engines in the order of worst ratings
+        query = """
+            SELECT Engine.*, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
             ORDER BY avg_rating ASC
-        """)
-    elif sort_option == "mostRatings":
-        cursor.execute("""
-            SELECT e.id, e.name, e.description, e.picture
-            FROM Engine e JOIN popular pop ON e.id = pop.eid
-            ORDER BY pop.totalratings DESC
-        """)
-    elif sort_option == "leastRatings":
-        cursor.execute("""
-            SELECT e.id, e.name, e.description, e.picture
-            FROM Engine e JOIN popular pop ON e.id = pop.eid
-            ORDER BY pop.totalratings ASC
-        """)
-    else: # Incase of no search option selected fetch engines in order of newest
-        cursor.execute("SELECT * FROM Engine")
+        """
+    elif sort_option == "mostRatings": # Returning all engines in the order of most ratings
+        query = """
+            SELECT Engine.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
+            ORDER BY sort_value DESC
+        """
+    elif sort_option == "leastRatings": # Returning all engines in the order of least ratings
+        query = """
+            SELECT Engine.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
+            ORDER BY sort_value ASC
+        """
+    else:  # Incase of no option selected, returning all engines in the order of newest to oldest
+        query = """
+            SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
+            ORDER BY Engine.id DESC
+        """
+    
+    cursor.execute(query)
     engines = cursor.fetchall()
     connection.close()
-    enginelist = [] # The list data that'll be passing to the HTML
-    for engine in engines: 
-        item = [engine[0], engine[1], engine[2], engine[3]] # Adding the ID, Name, Description, and Picture of the engine as a nested list to enginelist
-        enginelist.append(item)
-    return render_template("engines.html", engines=enginelist, sort_option=sort_option) # Rendering the HTML page with engines as the different engines with the required data and sort_option for the html to show which sort option is selected
+    enginelist = [[engine[0], engine[1], engine[2], engine[3], engine[-1]] for engine in engines]
+    return render_template("engines.html", engines=enginelist, sort_option=sort_option)
+
 
 
 @app.route("/engine/<string:engine_id>", methods=["GET", "POST"]) # Page route and form methods
