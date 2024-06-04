@@ -66,6 +66,46 @@ def home(): # Page function
             SELECT id, name, description, picture, 'engine' AS type, name AS sort_value FROM Engine
             ORDER BY sort_value COLLATE NOCASE DESC
         """
+    elif sort_option == "bestRatings":
+        query = """
+            SELECT p.id, p.name, p.description, p.picture, 'plane' AS type,
+                   (pop.ratings * 1.0 / pop.totalratings) AS sort_value
+            FROM Plane p JOIN popular pop ON p.id = pop.pid
+            UNION ALL
+            SELECT e.id, e.name, e.description, e.picture, 'engine' AS type,
+                   (pop.ratings * 1.0 / pop.totalratings) AS sort_value
+            FROM Engine e JOIN popular pop ON e.id = pop.eid
+            ORDER BY sort_value DESC
+        """
+    elif sort_option == "worstRatings":
+        query = """
+            SELECT p.id, p.name, p.description, p.picture, 'plane' AS type,
+                   (pop.ratings * 1.0 / pop.totalratings) AS sort_value
+            FROM Plane p JOIN popular pop ON p.id = pop.pid
+            UNION ALL
+            SELECT e.id, e.name, e.description, e.picture, 'engine' AS type,
+                   (pop.ratings * 1.0 / pop.totalratings) AS sort_value
+            FROM Engine e JOIN popular pop ON e.id = pop.eid
+            ORDER BY sort_value ASC
+        """
+    elif sort_option == "mostRatings":
+        query = """
+            SELECT p.id, p.name, p.description, p.picture, 'plane' AS type, pop.totalratings AS sort_value
+            FROM Plane p JOIN popular pop ON p.id = pop.pid
+            UNION ALL
+            SELECT e.id, e.name, e.description, e.picture, 'engine' AS type, pop.totalratings AS sort_value
+            FROM Engine e JOIN popular pop ON e.id = pop.eid
+            ORDER BY sort_value DESC
+        """
+    elif sort_option == "leastRatings":
+        query = """
+            SELECT p.id, p.name, p.description, p.picture, 'plane' AS type, pop.totalratings AS sort_value
+            FROM Plane p JOIN popular pop ON p.id = pop.pid
+            UNION ALL
+            SELECT e.id, e.name, e.description, e.picture, 'engine' AS type, pop.totalratings AS sort_value
+            FROM Engine e JOIN popular pop ON e.id = pop.eid
+            ORDER BY sort_value ASC
+        """
     else:  # Incase of no option selected, returning all planes and engines in the order of newest to oldest
         query = """
             SELECT id, name, description, picture, 'plane' AS type, id AS sort_value FROM Plane
@@ -104,6 +144,32 @@ def planes(): # Page function
         cursor.execute("SELECT * FROM Plane ORDER BY name ASC")
     elif sort_option == "Z-A": # Returning the planes in order of Z-A
         cursor.execute("SELECT * FROM Plane ORDER BY name DESC")
+    elif sort_option == "bestRatings":
+        cursor.execute("""
+            SELECT p.id, p.name, p.description, p.picture,
+                   (pop.ratings * 1.0 / pop.totalratings) AS avg_rating
+            FROM Plane p JOIN popular pop ON p.id = pop.pid
+            ORDER BY avg_rating DESC
+        """)
+    elif sort_option == "worstRatings":
+        cursor.execute("""
+            SELECT p.id, p.name, p.description, p.picture,
+                   (pop.ratings * 1.0 / pop.totalratings) AS avg_rating
+            FROM Plane p JOIN popular pop ON p.id = pop.pid
+            ORDER BY avg_rating ASC
+        """)
+    elif sort_option == "mostRatings":
+        cursor.execute("""
+            SELECT p.id, p.name, p.description, p.picture
+            FROM Plane p JOIN popular pop ON p.id = pop.pid
+            ORDER BY pop.totalratings DESC
+        """)
+    elif sort_option == "leastRatings":
+        cursor.execute("""
+            SELECT p.id, p.name, p.description, p.picture
+            FROM Plane p JOIN popular pop ON p.id = pop.pid
+            ORDER BY pop.totalratings ASC
+        """)
     else: # Incase of no order option selected return all planes by newest
         cursor.execute("SELECT * FROM Plane")
     planes = cursor.fetchall()
@@ -175,6 +241,32 @@ def engines(): # Page function
         cursor.execute("SELECT * FROM Engine ORDER BY name ASC")
     elif sort_option == "Z-A": # Fetching the engines sort by Z-A
         cursor.execute("SELECT * FROM Engine ORDER BY name DESC")
+    elif sort_option == "bestRatings":
+        cursor.execute("""
+            SELECT e.id, e.name, e.description, e.picture,
+                   (pop.ratings * 1.0 / pop.totalratings) AS avg_rating
+            FROM Engine e JOIN popular pop ON e.id = pop.eid
+            ORDER BY avg_rating DESC
+        """)
+    elif sort_option == "worstRatings":
+        cursor.execute("""
+            SELECT e.id, e.name, e.description, e.picture,
+                   (pop.ratings * 1.0 / pop.totalratings) AS avg_rating
+            FROM Engine e JOIN popular pop ON e.id = pop.eid
+            ORDER BY avg_rating ASC
+        """)
+    elif sort_option == "mostRatings":
+        cursor.execute("""
+            SELECT e.id, e.name, e.description, e.picture
+            FROM Engine e JOIN popular pop ON e.id = pop.eid
+            ORDER BY pop.totalratings DESC
+        """)
+    elif sort_option == "leastRatings":
+        cursor.execute("""
+            SELECT e.id, e.name, e.description, e.picture
+            FROM Engine e JOIN popular pop ON e.id = pop.eid
+            ORDER BY pop.totalratings ASC
+        """)
     else: # Incase of no search option selected fetch engines in order of newest
         cursor.execute("SELECT * FROM Engine")
     engines = cursor.fetchall()
