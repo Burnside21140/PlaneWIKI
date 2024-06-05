@@ -12,122 +12,81 @@ def databaseOpen(): # Connecting to the database for SQL querys
     return connection,cursor
 
 
+def databaseSelect(page, sort): # Returns the desired query for the situation
+    query = str()
+    if page == "home":
+        if sort == "new" or sort == "old":
+            query = f"""
+                SELECT id, name, description, picture, 'plane' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+                LEFT JOIN popular ON Plane.id = popular.pid
+                UNION ALL
+                SELECT id, name, description, picture, 'engine' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+                LEFT JOIN popular ON Engine.id = popular.eid
+                ORDER BY sort_value {'DESC' if sort == 'new' else 'ASC'}
+            """
+        elif sort == "mostViews" or sort == "leastViews":
+            query = f"""
+                SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                FROM Plane
+                LEFT JOIN popular ON Plane.id = popular.pid
+                UNION ALL
+                SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                FROM Engine
+                LEFT JOIN popular ON Engine.id = popular.eid
+                ORDER BY sort_value {'DESC' if sort == 'mostViews' else 'ASC'}
+            """
+        elif sort == "A-Z" or sort == "Z-A":
+            query = f"""
+                SELECT id, name, description, picture, 'plane' AS type, name AS sort_value, 
+                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating 
+                FROM Plane
+                LEFT JOIN popular ON Plane.id = popular.pid
+                UNION ALL
+                SELECT id, name, description, picture, 'engine' AS type, name AS sort_value, 
+                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating 
+                FROM Engine
+                LEFT JOIN popular ON Engine.id = popular.eid
+                ORDER BY sort_value COLLATE NOCASE {'DESC' if sort == 'Z-A' else 'ASC'}
+            """
+        elif sort == "bestRatings" or sort == "worstRatings":
+            query = f"""
+                SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                FROM Plane
+                LEFT JOIN popular ON Plane.id = popular.pid
+                UNION ALL
+                SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                FROM Engine
+                LEFT JOIN popular ON Engine.id = popular.eid
+                ORDER BY sort_value {'DESC' if sort == 'bestRatings' else 'ASC'}
+            """
+        elif sort == "mostRatings" or sort == "leastRatings":
+            query = f"""
+                SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                FROM Plane
+                LEFT JOIN popular ON Plane.id = popular.pid
+                UNION ALL
+                SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                FROM Engine
+                LEFT JOIN popular ON Engine.id = popular.eid
+                ORDER BY sort_value {'DESC' if sort == 'mostRatings' else 'ASC'}
+            """
+        else:
+            query = """
+                SELECT id, name, description, picture, 'plane' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+                LEFT JOIN popular ON Plane.id = popular.pid
+                UNION ALL
+                SELECT id, name, description, picture, 'engine' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+                LEFT JOIN popular ON Engine.id = popular.eid
+                ORDER BY sort_value DESC
+            """
+    return query
+
+
 @app.route("/", methods=["GET"]) # Page route and form methods
 def home(): # Page function
     sort_option = request.args.get("Sort", "new") # Fetching the desired sort method to fetch the planes and engines in the corresponding order
     connection, cursor = databaseOpen() # Connecting to the database
-    if sort_option == "new": # Returning all planes and engines in the order of newest to oldest
-        query = """
-            SELECT id, name, description, picture, 'plane' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            UNION ALL
-            SELECT id, name, description, picture, 'engine' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value DESC
-        """
-    elif sort_option == "old": # Returning all planes and engines in the order of oldest to newest
-        query = """
-            SELECT id, name, description, picture, 'plane' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            UNION ALL
-            SELECT id, name, description, picture, 'engine' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value ASC
-        """
-    elif sort_option == "mostViews": # Returning all planes and engines in the order of most views
-        query = """
-            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            UNION ALL
-            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value DESC
-        """
-    elif sort_option == "leastViews": # Returning all planes and engines in the order of least views
-        query = """
-            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            UNION ALL
-            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value ASC
-        """
-    elif sort_option == "A-Z": # Returning all planes and engines in the order of A-Z
-        query = """
-            SELECT id, name, description, picture, 'plane' AS type, name AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            UNION ALL
-            SELECT id, name, description, picture, 'engine' AS type, name AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value COLLATE NOCASE ASC
-        """
-    elif sort_option == "Z-A": # Returning all planes and engines in the order of Z-A
-        query = """
-            SELECT id, name, description, picture, 'plane' AS type, name AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            UNION ALL
-            SELECT id, name, description, picture, 'engine' AS type, name AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value COLLATE NOCASE DESC
-        """
-    elif sort_option == "bestRatings": # Returning all planes and engines in the order of best ratings
-        query = """
-            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            UNION ALL
-            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value DESC
-        """
-    elif sort_option == "worstRatings": # Returning all planes and engines in the order of worst ratings
-        query = """
-            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            UNION ALL
-            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value ASC
-        """
-    elif sort_option == "mostRatings": # Returning all planes and engines in the order of most ratings
-        query = """
-            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            UNION ALL
-            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value DESC
-        """
-    elif sort_option == "leastRatings": # Returning all planes and engines in the order of least ratings
-        query = """
-            SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            UNION ALL
-            SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value ASC
-        """
-    else:  # Incase of no option selected, returning all planes and engines in the order of newest to oldest
-        query = """
-            SELECT id, name, description, picture, 'plane' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            UNION ALL
-            SELECT id, name, description, picture, 'engine' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value DESC
-        """
-    
+    query = databaseSelect('home', sort_option)
     cursor.execute(query) # Executing the query
     pages = cursor.fetchall() # Fetching all the rows
     connection.close() # Closing the connection
