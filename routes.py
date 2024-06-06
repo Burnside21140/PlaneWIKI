@@ -79,6 +79,38 @@ def databaseSelect(page, sort): # Returns the desired query for the situation
                 LEFT JOIN popular ON Engine.id = popular.eid
                 ORDER BY sort_value DESC
             """
+    elif page == "planes":
+        if sort == "new" or sort == "old"  or sort == "A-Z" or sort == "Z-A":
+            query = f"""
+                SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+                LEFT JOIN popular ON Plane.id = popular.pid
+                ORDER BY {'Plane.id' if sort == 'new' or sort == "old" else 'Plane.name'} {"COLLATE NOCASE" if "-" in sort else ""} {'DESC' if sort == 'new' or sort == "Z-A" else 'ASC'} 
+            """
+        elif sort == "mostViews" or sort == "leastViews":
+            query = f"""
+                SELECT Plane.*, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                FROM Plane
+                LEFT JOIN popular ON Plane.id = popular.pid
+                ORDER BY sort_value {'DESC' if sort == 'mostViews' else 'ASC'}
+            """
+        elif sort == "bestRatings" or sort == "worstRatings":
+            query = f"""
+                SELECT Plane.*, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Plane
+                LEFT JOIN popular ON Plane.id = popular.pid
+                ORDER BY avg_rating {'DESC' if sort == 'bestRatings' else 'ASC'}
+            """
+        elif sort == "mostRatings" or sort == "leastRatings":
+            query = f"""
+            SELECT Plane.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Plane
+            LEFT JOIN popular ON Plane.id = popular.pid
+            ORDER BY sort_value {'DESC' if sort == 'mostRatings' else 'ASC'}
+        """
+        else:
+            query = """
+                SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+                LEFT JOIN popular ON Plane.id = popular.pid
+                ORDER BY Plane.id DESC
+            """
     return query
 
 
@@ -97,79 +129,11 @@ def home(): # Page function
 def planes():
     sort_option = request.args.get("Sort", "new")
     connection, cursor = databaseOpen()
-
-    if sort_option == "new": # Returning all planes in the order of newest to oldest
-        query = """
-            SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            ORDER BY Plane.id DESC
-        """
-    elif sort_option == "old": # Returning all planes in the order of oldest to newest
-        query = """
-            SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            ORDER BY Plane.id ASC
-        """
-    elif sort_option == "mostViews": # Returning all planes in the order of most views
-        query = """
-            SELECT Plane.*, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            ORDER BY sort_value DESC
-        """
-    elif sort_option == "leastViews": # Returning all planes in the order of least views
-        query = """
-            SELECT Plane.*, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            ORDER BY sort_value ASC
-        """
-    elif sort_option == "A-Z": # Returning all planes in the order of A-Z
-        query = """
-            SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            ORDER BY Plane.name COLLATE NOCASE ASC
-        """
-    elif sort_option == "Z-A": # Returning all planes in the order of Z-A
-        query = """
-            SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            ORDER BY Plane.name COLLATE NOCASE DESC
-        """
-    elif sort_option == "bestRatings": # Returning all planes in the order of best ratings
-        query = """
-            SELECT Plane.*, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            ORDER BY avg_rating DESC
-        """
-    elif sort_option == "worstRatings": # Returning all planes in the order of worst ratings
-        query = """
-            SELECT Plane.*, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            ORDER BY avg_rating ASC
-        """
-    elif sort_option == "mostRatings": # Returning all planes in the order of most ratings
-        query = """
-            SELECT Plane.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            ORDER BY sort_value DESC
-        """
-    elif sort_option == "leastRatings": # Returning all planes in the order of least ratings
-        query = """
-            SELECT Plane.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            ORDER BY sort_value ASC
-        """
-    else:  # Incase of no option selected, returning all planes in the order of newest to oldest
-        query = """
-            SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            ORDER BY Plane.id DESC
-        """
-
+    query = databaseSelect('planes', sort_option)
     cursor.execute(query)
     planes = cursor.fetchall()
     connection.close()
+    print(query)
     planelist = [[plane[0], plane[1], plane[2], plane[3], plane[-1]] for plane in planes]
     return render_template("planes.html", planes=planelist, sort_option=sort_option)
 
