@@ -111,6 +111,38 @@ def databaseSelect(page, sort): # Returns the desired query for the situation
                 LEFT JOIN popular ON Plane.id = popular.pid
                 ORDER BY Plane.id DESC
             """
+    elif page == "engines":
+        if sort == "new" or sort == "old"  or sort == "A-Z" or sort == "Z-A":
+            query = f"""
+                SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+                LEFT JOIN popular ON Engine.id = popular.eid
+                ORDER BY {'Engine.id' if sort == 'new' or sort == "old" else 'Engine.name'} {"COLLATE NOCASE" if "-" in sort else ""} {'DESC' if sort == 'new' or sort == "Z-A" else 'ASC'} 
+            """
+        elif sort == "mostViews" or sort == "leastViews":
+            query = f"""
+                SELECT Engine.*, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                FROM Engine
+                LEFT JOIN popular ON Engine.id = popular.eid
+                ORDER BY sort_value {'DESC' if sort == 'mostViews' else 'ASC'}
+            """
+        elif sort == "bestRatings" or sort == "worstRatings":
+            query = f"""
+                SELECT Engine.*, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Engine
+                LEFT JOIN popular ON Engine.id = popular.eid
+                ORDER BY avg_rating {'DESC' if sort == 'bestRatings' else 'ASC'}
+            """
+        elif sort == "mostRatings" or sort == "leastRatings":
+            query = f"""
+            SELECT Engine.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Engine
+            LEFT JOIN popular ON Engine.id = popular.eid
+            ORDER BY sort_value {'DESC' if sort == 'mostRatings' else 'ASC'}
+        """
+        else:
+            query = """
+                SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+                LEFT JOIN popular ON Engine.id = popular.eid
+                ORDER BY Engine.id DESC
+            """
     return query
 
 
@@ -133,8 +165,7 @@ def planes():
     cursor.execute(query)
     planes = cursor.fetchall()
     connection.close()
-    print(query)
-    planelist = [[plane[0], plane[1], plane[2], plane[3], plane[-1]] for plane in planes]
+    planelist = [[plane[0], plane[1], plane[2], plane[3], plane[-1]] for plane in planes] # Creating nested lists inside the one list with the plane ID, name, description, picture, and avg rating
     return render_template("planes.html", planes=planelist, sort_option=sort_option)
 
 
@@ -171,87 +202,16 @@ def plane(plane_id): # Page function
         return "Plane not found", 404
 
 
-
 @app.route("/engines", methods=["GET"])
 def engines():
     sort_option = request.args.get("Sort", "new")
     connection, cursor = databaseOpen()
-
-    if sort_option == "new": # Returning all engines in the order of newest to oldest
-        query = """
-            SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY Engine.id DESC
-        """
-    elif sort_option == "old": # Returning all engines in the order of oldest to newest
-        query = """
-            SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY Engine.id ASC
-        """
-    elif sort_option == "mostViews": # Returning all engines in the order of most views
-        query = """
-            SELECT Engine.*, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value DESC
-        """
-    elif sort_option == "leastViews": # Returning all engines in the order of least views
-        query = """
-            SELECT Engine.*, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-            FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value ASC
-        """
-    elif sort_option == "A-Z": # Returning all engines in the order of A-Z
-        query = """
-            SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY Engine.name COLLATE NOCASE ASC
-        """
-    elif sort_option == "Z-A": # Returning all engines in the order of Z-A
-        query = """
-            SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY Engine.name COLLATE NOCASE DESC
-        """
-    elif sort_option == "bestRatings": # Returning all engines in the order of best ratings
-        query = """
-            SELECT Engine.*, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY avg_rating DESC
-        """
-    elif sort_option == "worstRatings": # Returning all engines in the order of worst ratings
-        query = """
-            SELECT Engine.*, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY avg_rating ASC
-        """
-    elif sort_option == "mostRatings": # Returning all engines in the order of most ratings
-        query = """
-            SELECT Engine.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value DESC
-        """
-    elif sort_option == "leastRatings": # Returning all engines in the order of least ratings
-        query = """
-            SELECT Engine.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value ASC
-        """
-    else:  # Incase of no option selected, returning all engines in the order of newest to oldest
-        query = """
-            SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY Engine.id DESC
-        """
-    
+    query = databaseSelect('engines', sort_option)
     cursor.execute(query)
     engines = cursor.fetchall()
     connection.close()
-    enginelist = [[engine[0], engine[1], engine[2], engine[3], engine[-1]] for engine in engines]
+    enginelist = [[engine[0], engine[1], engine[2], engine[3], engine[-1]] for engine in engines] # Creating nested lists inside the one list with the engine ID, name, description, picture, and avg rating
     return render_template("engines.html", engines=enginelist, sort_option=sort_option)
-
 
 
 @app.route("/engine/<string:engine_id>", methods=["GET", "POST"]) # Page route and form methods
