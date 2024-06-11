@@ -1,5 +1,18 @@
-{% extends 'layout.html' %} 
+{% extends 'layout.html' %}
 
-{% block content %} 
-<p> Wow! This is such an interesting and very unique website, I love it! </p>
+{% block content %}
+<form method="POST" action="/edit/{{ item_type }}/{{ item_id }}">
+    <label for="PlaneEngine">Plane or Engine</label> <br>
+    <select name="PlaneEngine" id="PlaneEngine" disabled>
+        <option value="plane" {% if item_type == "plane" %}selected{% endif %}>Plane</option>
+        <option value="engine" {% if item_type == "engine" %}selected{% endif %}>Engine</option>
+    </select> <br>
+    <label for="name">Name</label> <br>
+    <input type="text" id="name" name="name" value="{{ item[0] }}"> <br>
+    <label for="description">Description</label> <br>
+    <input type="text" id="description" name="description" value="{{ item[1] }}"> <br>
+    <label for="password">Password</label> <br>
+    <input type="password" id="password" name="password" value="{{ item[2] }}"> <br>
+    <button type="submit">Submit</button>
+</form>
 {% endblock %}

@@ -197,7 +197,7 @@ def plane(plane_id): # Page function
                 """, (plane_id,))
         connection.commit()
         connection.close()
-        return render_template('plane.html', planename=plane[1], planedesc=plane[2], planeimg=plane[3])
+        return render_template('plane.html', planeid=plane[0], planename=plane[1], planedesc=plane[2], planeimg=plane[3])
     else: # If the plane does not exist return a 404 error
         return "Plane not found", 404
 
@@ -237,7 +237,7 @@ def engine(engine_id): # Page function
         connection.commit()
     connection.close()
     if engine:
-        return render_template('engine.html', enginename=engine[1], enginedesc=engine[2], engineimg=engine[3])
+        return render_template('engine.html', engineid=engine[0], enginename=engine[1], enginedesc=engine[2], engineimg=engine[3])
     else:
         return "Engine not found", 404
 
@@ -277,6 +277,60 @@ def create():
         return render_template("created.html")
     else:
         return render_template("create.html")
+
+
+@app.route("/edit/<string:item_type>/<int:item_id>", methods=["GET", "POST"])
+def edit(item_type, item_id):
+    connection, cursor = databaseOpen()
+
+    if request.method == "POST":
+        name = request.form["name"]
+        description = request.form["description"]
+        entered_password = request.form["password"]
+
+        # Fetch the current password from the database
+        if item_type == "plane":
+            cursor.execute("SELECT password FROM Plane WHERE id = ?", (item_id,))
+        elif item_type == "engine":
+            cursor.execute("SELECT password FROM Engine WHERE id = ?", (item_id,))
+        
+        current_password = cursor.fetchone()
+
+        if current_password and current_password[0] == entered_password:
+            if item_type == "plane":
+                cursor.execute("""
+                    UPDATE Plane
+                    SET name = ?, description = ?, password = ?
+                    WHERE id = ?
+                """, (name, description, entered_password, item_id))
+            elif item_type == "engine":
+                cursor.execute("""
+                    UPDATE Engine
+                    SET name = ?, description = ?, password = ?
+                    WHERE id = ?
+                """, (name, description, entered_password, item_id))
+
+            connection.commit()
+            connection.close()
+            return redirect(f"/{item_type}/{item_id}")
+        else:
+            error = "Incorrect password. Please try again."
+            item = (name, description)
+            connection.close()
+            return render_template("edit.html", item_type=item_type, item_id=item_id, item=item, error=error)
+    
+    if item_type == "plane":
+        cursor.execute("SELECT name, description FROM Plane WHERE id = ?", (item_id,))
+    elif item_type == "engine":
+        cursor.execute("SELECT name, description FROM Engine WHERE id = ?", (item_id,))
+
+    item = cursor.fetchone()
+    connection.close()
+
+    if not item:
+        return "Item not found", 404
+
+    return render_template("edit.html", item_type=item_type, item_id=item_id, item=item)
 
 
 # Easter egg code
