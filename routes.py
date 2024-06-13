@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 
 import sqlite3
+import base64
 
 
 app = Flask(__name__)
@@ -196,8 +197,19 @@ def plane(plane_id): # Page function
                     VALUES (?, 1)
                 """, (plane_id,))
         connection.commit()
+        cursor.execute("SELECT ratings, totalratings FROM popular WHERE pid = ?", (plane_id,))
+        rating_info = cursor.fetchone()
+        if rating_info:
+            ratings, totalratings = rating_info
+            if totalratings > 0:
+                avg_rating = ratings / totalratings
+            else:
+                avg_rating = 0
+        else:
+            avg_rating = 0
         connection.close()
-        return render_template('plane.html', planeid=plane[0], planename=plane[1], planedesc=plane[2], planeimg=plane[3])
+        planeimg = f"data:image/png;base64,{plane[3]}"
+        return render_template('plane.html', planeid=plane[0], planename=plane[1], planedesc=plane[2], planeimg=planeimg, avgrating=avg_rating)
     else: # If the plane does not exist return a 404 error
         return "Plane not found", 404
 
@@ -235,12 +247,22 @@ def engine(engine_id): # Page function
         opened = opened[0] + 1
         cursor.execute("UPDATE popular SET opened = ? WHERE eid = ?;", (opened, engine_id))
         connection.commit()
+    cursor.execute("SELECT ratings, totalratings FROM popular WHERE eid = ?", (engine_id,))
+    rating_info = cursor.fetchone()
+    if rating_info:
+        ratings, totalratings = rating_info
+        if totalratings > 0:
+            avg_rating = ratings / totalratings
+        else:
+            avg_rating = 0
+    else:
+        avg_rating = 0
     connection.close()
+    engineimg = f"data:image/png;base64,{engine[3]}"
     if engine:
-        return render_template('engine.html', engineid=engine[0], enginename=engine[1], enginedesc=engine[2], engineimg=engine[3])
+        return render_template('engine.html', engineid=engine[0], enginename=engine[1], enginedesc=engine[2], engineimg=engineimg, avgrating=avg_rating)
     else:
         return "Engine not found", 404
-
 
 
 @app.route("/create", methods=["GET", "POST"])
@@ -408,6 +430,7 @@ def asciiArt(letters):
                 ascii6.append(letter[1])
     print(asciiLeters1, asciiLeters2, asciiLeters3, asciiLeters4, asciiLeters5, asciiLeters6)
     return render_template("asciiart.html", asciiart=[ascii1, ascii2, ascii3, ascii4, ascii5, ascii6])
+
 
 if __name__ == "__main__":
     app.run(debug=True)  # live updates code when building a website
