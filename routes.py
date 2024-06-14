@@ -1,8 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 
 import sqlite3
 import base64
-
 
 app = Flask(__name__)
 
@@ -353,6 +352,25 @@ def edit(item_type, item_id):
         return "Item not found", 404
 
     return render_template("edit.html", item_type=item_type, item_id=item_id, item=item)
+
+
+@app.route("/search")
+def search():
+    query = request.args.get("query", "")
+    if query:
+        connection, cursor = databaseOpen()
+        search_query = """
+            SELECT id, name, 'plane' AS type FROM Plane WHERE name LIKE ? OR description LIKE ?
+            UNION ALL
+            SELECT id, name, 'engine' AS type FROM Engine WHERE name LIKE ? OR description LIKE ?
+            ORDER BY name COLLATE NOCASE
+        """
+        search_term = f"%{query}%"
+        cursor.execute(search_query, (search_term, search_term, search_term, search_term))
+        results = cursor.fetchall()
+        connection.close()
+        return jsonify({"results": results})
+    return jsonify({"results": []})
 
 
 # Easter egg code

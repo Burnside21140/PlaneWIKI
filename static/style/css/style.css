@@ -39,6 +39,25 @@ nav ul a:hover {
     text-decoration: none;
 }
 
+/* Search bar styles */
+.search-results {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    display: none;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+.search-results a {
+    display: block;
+    padding: 5px;
+    text-decoration: none;
+    color: black;
+}
+.search-results a:hover {
+    background-color: #eee;
+}
 /* end of nav block */
 
 body {

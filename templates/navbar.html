@@ -1,8 +1,31 @@
+<script>
+    async function handleSearch(query) {
+        if (query.length === 0) {
+            document.getElementById('search-results').style.display = 'none';
+            return;
+        }
+
+        const response = await fetch(`/search?query=${query}`);
+        const data = await response.json();
+        const resultsContainer = document.getElementById('search-results');
+        resultsContainer.innerHTML = '';
+        data.results.forEach(result => {
+            const resultElement = document.createElement('a');
+            resultElement.href = `/${result[2]}/${result[0]}`;
+            resultElement.textContent = `${result[1]} (${result[2]})`;
+            resultsContainer.appendChild(resultElement);
+        });
+        resultsContainer.style.display = 'block';
+    }
+</script>
 <ul class="nav-bar">
     <li class="nav-bar-item logo">PlaneWIKI</li>
     <a href="/"><li class="nav-bar-item">Home</li></a>
     <a href="/planes"><li class="nav-bar-item">Plane</li></a>
     <a href="/engines"><li class="nav-bar-item">Engine</li></a>
     <a href="/create"><li class="nav-bar-item">Create</li></a>
-    <li class="nav-bar-item">Search bar</li>
+    <li class="nav-bar-item">
+        <input type="text" oninput="handleSearch(this.value)" placeholder="Search...">
+        <div id="search-results" class="search-results"></div>
+    </li>
 </ul>
