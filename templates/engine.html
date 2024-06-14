@@ -5,7 +5,7 @@
     <br>
     <div class="pe-header pe-section">
         <h1>{{enginename}}</h1>
-        <h1>Avg Rating: {{ avgrating if avgrating > 0 else '0' | round(2) }}/5</h1>
+        <h1>Avg Rating: {{ avgrating | round(2) }}/5</h1>
     </div>
     <div class="pe-info pe-section">
         <img src="{{engineimg}}" alt="">
