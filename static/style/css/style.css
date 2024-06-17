@@ -29,7 +29,7 @@ nav ul a:hover {
 }
 
 nav ul li input {
-    font-size: 40px;
+    font-size: 10%;
 }
 
 .nav-bar {
@@ -41,6 +41,19 @@ nav ul li input {
     margin: 0px;
     color: white;
     text-decoration: none;
+}
+
+@media (max-width: 1100px) {
+    nav li {
+        padding: 0px;
+        font-size: 30px;
+    }
+
+    .nav-bar {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    }
+    
 }
 
 /* Search bar styles */
