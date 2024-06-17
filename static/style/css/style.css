@@ -28,6 +28,10 @@ nav ul a:hover {
     background-color: #3E4E7B;
 }
 
+nav ul li input {
+    font-size: 40px;
+}
+
 .nav-bar {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr 2fr;
@@ -41,23 +45,25 @@ nav ul a:hover {
 
 /* Search bar styles */
 .search-results {
-    position: absolute;
-    background-color: white;
-    border: 1px solid #ccc;
+    position: fixed;
+    background-color: #303D60;
     display: none;
     max-height: 200px;
     overflow-y: auto;
     z-index: 1000;
 }
+
 .search-results a {
     display: block;
     padding: 5px;
     text-decoration: none;
     color: black;
 }
+
 .search-results a:hover {
-    background-color: #eee;
+    background-color: #3E4E7B;
 }
+
 /* end of nav block */
 
 body {
