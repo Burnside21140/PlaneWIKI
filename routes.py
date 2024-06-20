@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 
 import sqlite3
-import base64
 
 app = Flask(__name__)
 
@@ -154,7 +153,16 @@ def home(): # Page function
     cursor.execute(query) # Executing the query
     pages = cursor.fetchall() # Fetching all the rows
     connection.close() # Closing the connection
-    return render_template("home.html", pages=pages, sort_option=sort_option) # Rendering the home.html file and passing the required variables for Jinja template
+    list_of_pages = []
+    index = -1
+    for i in pages:
+        index += 1
+        nested_list = []
+        for n in i:
+            nested_list.append(n)
+        list_of_pages.append(nested_list)
+        list_of_pages[index][3] = f"data:image/png;base64,{list_of_pages[index][3]}"
+    return render_template("home.html", pages=list_of_pages, sort_option=sort_option) # Rendering the home.html file and passing the required variables for Jinja template
 
 
 @app.route("/planes")
@@ -271,25 +279,26 @@ def create():
         plane_engine = request.form.get("PlaneEngine")
         name = request.form.get("name")
         description = request.form.get("description")
+        picture = request.form.get("picture")
         password = request.form.get("password")
         # Insert into the database
         connection, cursor = databaseOpen()  # Connecting to the database
         if plane_engine == "plane":
-            cursor.execute("INSERT INTO plane (name, description, password) VALUES (?, ?, ?)",
-                           (name, description, password))
+            cursor.execute("INSERT INTO plane (name, description, picture, password) VALUES (?, ?, ?, ?)",
+                           (name, description, picture, password))
             connection.commit()
-            cursor.execute("SELECT id FROM plane WHERE name = ? AND description = ? AND password = ?",
-                           (name, description, password))
+            cursor.execute("SELECT id FROM plane WHERE name = ? AND description = ? AND picture = ? AND password = ?",
+                           (name, description, picture, password))
             id = cursor.fetchone()
             cursor.execute("INSERT INTO popular (pid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)",
                            (id[0],))
             connection.commit()
         elif plane_engine == "engine":
-            cursor.execute("INSERT INTO engine (name, description, password) VALUES (?, ?, ?)",
-                           (name, description, password))
+            cursor.execute("INSERT INTO engine (name, description, picture, password) VALUES (?, ?, ?, ?)",
+                           (name, description, picture, password))
             connection.commit()
-            cursor.execute("SELECT id FROM engine WHERE name = ? AND description = ? AND password = ?",
-                           (name, description, password))
+            cursor.execute("SELECT id FROM engine WHERE name = ? AND description = ? AND picture = ? AND password = ?",
+                           (name, description, picture, password))
             id = cursor.fetchone()
             cursor.execute("INSERT INTO popular (eid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)",
                            (id[0],))
@@ -341,9 +350,9 @@ def edit(item_type, item_id):
             return render_template("edit.html", item_type=item_type, item_id=item_id, item=item, error=error)
     
     if item_type == "plane":
-        cursor.execute("SELECT name, description FROM Plane WHERE id = ?", (item_id,))
+        cursor.execute("SELECT name, description, picture FROM Plane WHERE id = ?", (item_id,))
     elif item_type == "engine":
-        cursor.execute("SELECT name, description FROM Engine WHERE id = ?", (item_id,))
+        cursor.execute("SELECT name, description, picture FROM Engine WHERE id = ?", (item_id,))
 
     item = cursor.fetchone()
     connection.close()
