@@ -174,6 +174,10 @@ def planes():
     planes = cursor.fetchall()
     connection.close()
     planelist = [[plane[0], plane[1], plane[2], plane[3], plane[-1]] for plane in planes] # Creating nested lists inside the one list with the plane ID, name, description, picture, and avg rating
+    index = -1
+    for i in planelist:
+        index += 1
+        planelist[index][3] = f"data:image/png;base64,{planelist[index][3]}"
     return render_template("planes.html", planes=planelist, sort_option=sort_option)
 
 
@@ -316,6 +320,7 @@ def edit(item_type, item_id):
     if request.method == "POST":
         name = request.form["name"]
         description = request.form["description"]
+        picture = request.form["picture"]
         entered_password = request.form["password"]
 
         # Fetch the current password from the database
@@ -326,19 +331,19 @@ def edit(item_type, item_id):
         
         current_password = cursor.fetchone()
 
-        if current_password and current_password[0] == entered_password:
+        if current_password[0] == entered_password:
             if item_type == "plane":
                 cursor.execute("""
                     UPDATE Plane
-                    SET name = ?, description = ?, password = ?
+                    SET name = ?, description = ?, picture = ?, password = ?
                     WHERE id = ?
-                """, (name, description, entered_password, item_id))
+                """, (name, description, picture, entered_password, item_id))
             elif item_type == "engine":
                 cursor.execute("""
                     UPDATE Engine
-                    SET name = ?, description = ?, password = ?
+                    SET name = ?, description = ?, picture = ?, password = ?
                     WHERE id = ?
-                """, (name, description, entered_password, item_id))
+                """, (name, description, picture, entered_password, item_id))
 
             connection.commit()
             connection.close()
