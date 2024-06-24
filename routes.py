@@ -234,6 +234,10 @@ def engines():
     engines = cursor.fetchall()
     connection.close()
     enginelist = [[engine[0], engine[1], engine[2], engine[3], engine[-1]] for engine in engines] # Creating nested lists inside the one list with the engine ID, name, description, picture, and avg rating
+    index = -1
+    for i in enginelist:
+        index += 1
+        enginelist[index][3] = f"data:image/png;base64,{enginelist[index][3]}"
     return render_template("engines.html", engines=enginelist, sort_option=sort_option)
 
 
