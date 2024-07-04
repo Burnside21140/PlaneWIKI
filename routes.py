@@ -148,14 +148,14 @@ def databaseSelect(page, sort): # Returns the desired query for the situation
 @app.route("/", methods=["GET"]) # Page route and form methods
 def home(): # Page function
     sort_option = request.args.get("Sort", "new") # Fetching the desired sort method to fetch the planes and engines in the corresponding order
-    connection, cursor = databaseOpen() # Connecting to the database
+    connection, cursor = databaseOpen() 
     query = databaseSelect('home', sort_option)
-    cursor.execute(query) # Executing the query
-    pages = cursor.fetchall() # Fetching all the rows
-    connection.close() # Closing the connection
+    cursor.execute(query) 
+    pages = cursor.fetchall()
+    connection.close()
     list_of_pages = []
     index = -1
-    for i in pages:
+    for i in pages: # Turning the images into something that can be processes by html
         index += 1
         nested_list = []
         for n in i:
@@ -175,7 +175,7 @@ def planes():
     connection.close()
     planelist = [[plane[0], plane[1], plane[2], plane[3], plane[-1]] for plane in planes] # Creating nested lists inside the one list with the plane ID, name, description, picture, and avg rating
     index = -1
-    for i in planelist:
+    for i in planelist: # Turning the images into something that can be processes by html
         index += 1
         planelist[index][3] = f"data:image/png;base64,{planelist[index][3]}"
     return render_template("planes.html", planes=planelist, sort_option=sort_option)
@@ -235,7 +235,7 @@ def engines():
     connection.close()
     enginelist = [[engine[0], engine[1], engine[2], engine[3], engine[-1]] for engine in engines] # Creating nested lists inside the one list with the engine ID, name, description, picture, and avg rating
     index = -1
-    for i in enginelist:
+    for i in enginelist: # Turning the images into something that can be processes by html
         index += 1
         enginelist[index][3] = f"data:image/png;base64,{enginelist[index][3]}"
     return render_template("engines.html", engines=enginelist, sort_option=sort_option)
@@ -289,30 +289,33 @@ def create():
         description = request.form.get("description")
         picture = request.form.get("picture")
         password = request.form.get("password")
-        # Insert into the database
-        connection, cursor = databaseOpen()  # Connecting to the database
-        if plane_engine == "plane":
-            cursor.execute("INSERT INTO plane (name, description, picture, password) VALUES (?, ?, ?, ?)",
-                           (name, description, picture, password))
-            connection.commit()
-            cursor.execute("SELECT id FROM plane WHERE name = ? AND description = ? AND picture = ? AND password = ?",
-                           (name, description, picture, password))
-            id = cursor.fetchone()
-            cursor.execute("INSERT INTO popular (pid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)",
-                           (id[0],))
-            connection.commit()
-        elif plane_engine == "engine":
-            cursor.execute("INSERT INTO engine (name, description, picture, password) VALUES (?, ?, ?, ?)",
-                           (name, description, picture, password))
-            connection.commit()
-            cursor.execute("SELECT id FROM engine WHERE name = ? AND description = ? AND picture = ? AND password = ?",
-                           (name, description, picture, password))
-            id = cursor.fetchone()
-            cursor.execute("INSERT INTO popular (eid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)",
-                           (id[0],))
-            connection.commit()
-        connection.close()
-        return render_template("created.html")
+        if name and description and password: # Checking that the required fields are filled
+            # Insert new data into the plane/engine table then the popular table
+            connection, cursor = databaseOpen() 
+            if plane_engine == "plane":
+                cursor.execute("INSERT INTO plane (name, description, picture, password) VALUES (?, ?, ?, ?)",
+                            (name, description, picture, password))
+                connection.commit()
+                cursor.execute("SELECT id FROM plane WHERE name = ? AND description = ? AND picture = ? AND password = ?",
+                            (name, description, picture, password))
+                id = cursor.fetchone()
+                cursor.execute("INSERT INTO popular (pid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)",
+                            (id[0],))
+                connection.commit()
+            elif plane_engine == "engine":
+                cursor.execute("INSERT INTO engine (name, description, picture, password) VALUES (?, ?, ?, ?)",
+                            (name, description, picture, password))
+                connection.commit()
+                cursor.execute("SELECT id FROM engine WHERE name = ? AND description = ? AND picture = ? AND password = ?",
+                            (name, description, picture, password))
+                id = cursor.fetchone()
+                cursor.execute("INSERT INTO popular (eid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)",
+                            (id[0],))
+                connection.commit()
+            connection.close()
+            # Redricting to a page to tell them the pafe was created or back to the create page to try again
+            return render_template("created.html")
+        return render_template("create.html")
     else:
         return render_template("create.html")
 
@@ -322,6 +325,7 @@ def edit(item_type, item_id):
     connection, cursor = databaseOpen()
 
     if request.method == "POST":
+        # Fetch the inputs
         name = request.form["name"]
         description = request.form["description"]
         picture = request.form["picture"]
@@ -335,6 +339,7 @@ def edit(item_type, item_id):
         
         current_password = cursor.fetchone()
 
+        # Checking if the password is correct before updating the data
         if current_password[0] == entered_password:
             if item_type == "plane":
                 cursor.execute("""
@@ -351,13 +356,14 @@ def edit(item_type, item_id):
 
             connection.commit()
             connection.close()
-            return redirect(f"/{item_type}/{item_id}")
+            return redirect(f"/{item_type}/{item_id}") # Redricts to the page
         else:
             error = "Incorrect password. Please try again."
             item = (name, description)
             connection.close()
             return render_template("edit.html", item_type=item_type, item_id=item_id, item=item, error=error)
     
+    # Fetching name, description, and picture from the databse to show the user what is already there
     if item_type == "plane":
         cursor.execute("SELECT name, description, picture FROM Plane WHERE id = ?", (item_id,))
     elif item_type == "engine":
@@ -377,6 +383,7 @@ def search():
     query = request.args.get("query", "")
     if query:
         connection, cursor = databaseOpen()
+        # Using the user's input to search the plane's and engine's names and description for similarities
         search_query = """
             SELECT id, name, 'plane' AS type FROM Plane WHERE name LIKE ? OR description LIKE ?
             UNION ALL
@@ -387,7 +394,7 @@ def search():
         cursor.execute(search_query, (search_term, search_term, search_term, search_term))
         results = cursor.fetchall()
         connection.close()
-        return jsonify({"results": results})
+        return jsonify({"results": results}) # Turning the results into something json can understand
     return jsonify({"results": []})
 
 
