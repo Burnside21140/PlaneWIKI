@@ -1,17 +1,17 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, jsonify
 
 import sqlite3
 
 app = Flask(__name__)
 
 
-def databaseOpen(): # Connecting to the database for SQL querys
+def databaseOpen():  # Connecting to the database for SQL querys
     connection = sqlite3.connect('planeWIKIDB.db')
     cursor = connection.cursor()
-    return connection,cursor
+    return connection, cursor
 
 
-def databaseSelect(page, sort): # Returns the desired query for the situation
+def databaseSelect(page, sort):  # Returns the desired query for the situation
     query = str()
     if page == "home":
         if sort == "new" or sort == "old":
@@ -145,9 +145,9 @@ def databaseSelect(page, sort): # Returns the desired query for the situation
     return query
 
 
-@app.route("/", methods=["GET"]) # Page route and form methods
-def home(): # Page function
-    sort_option = request.args.get("Sort", "new") # Fetching the desired sort method to fetch the planes and engines in the corresponding order
+@app.route("/", methods=["GET"])  # Page route and form methods
+def home():  # Page function
+    sort_option = request.args.get("Sort", "new")  # Fetching the desired sort method to fetch the planes and engines in the corresponding order
     connection, cursor = databaseOpen() 
     query = databaseSelect('home', sort_option)
     cursor.execute(query) 
@@ -155,14 +155,14 @@ def home(): # Page function
     connection.close()
     list_of_pages = []
     index = -1
-    for i in pages: # Turning the images into something that can be processes by html
+    for i in pages:  # Turning the images into something that can be processes by html
         index += 1
         nested_list = []
         for n in i:
             nested_list.append(n)
         list_of_pages.append(nested_list)
         list_of_pages[index][3] = f"data:image/png;base64,{list_of_pages[index][3]}"
-    return render_template("home.html", pages=list_of_pages, sort_option=sort_option) # Rendering the home.html file and passing the required variables for Jinja template
+    return render_template("home.html", pages=list_of_pages, sort_option=sort_option)  # Rendering the home.html file and passing the required variables for Jinja template
 
 
 @app.route("/planes")
@@ -173,36 +173,36 @@ def planes():
     cursor.execute(query)
     planes = cursor.fetchall()
     connection.close()
-    planelist = [[plane[0], plane[1], plane[2], plane[3], plane[-1]] for plane in planes] # Creating nested lists inside the one list with the plane ID, name, description, picture, and avg rating
+    planelist = [[plane[0], plane[1], plane[2], plane[3], plane[-1]] for plane in planes]  # Creating nested lists inside the one list with the plane ID, name, description, picture, and avg rating
     index = -1
-    for i in planelist: # Turning the images into something that can be processes by html
+    for i in planelist:  # Turning the images into something that can be processes by html
         index += 1
         planelist[index][3] = f"data:image/png;base64,{planelist[index][3]}"
     return render_template("planes.html", planes=planelist, sort_option=sort_option)
 
 
-@app.route("/plane/<string:plane_id>", methods=["GET", "POST"]) # Page route with the desired methods
-def plane(plane_id): # Page function
-    connection, cursor = databaseOpen() # Connecting to the database
-    if request.method == "POST": # Receiving the rating given
-        rating = request.form.get("rating") # Receiving the value of the rating
+@app.route("/plane/<string:plane_id>", methods=["GET", "POST"])  # Page route with the desired methods
+def plane(plane_id):  # Page function
+    connection, cursor = databaseOpen()  # Connecting to the database
+    if request.method == "POST":  # Receiving the rating given
+        rating = request.form.get("rating")  # Receiving the value of the rating
         if rating:
             rating = int(rating)
             cursor.execute("""
                 UPDATE popular
                 SET ratings = ratings + ?, totalratings = totalratings + 1
                 WHERE pid = ?
-            """, (rating, plane_id)) # Adding the value of the rating and the amount of ratings to the plane in the popular table
+            """, (rating, plane_id))  # Adding the value of the rating and the amount of ratings to the plane in the popular table
             connection.commit()
-    cursor.execute("SELECT * FROM Plane WHERE id = ?", (plane_id,)) # Fetching the plane's information for the planes table
+    cursor.execute("SELECT * FROM Plane WHERE id = ?", (plane_id,))  # Fetching the plane's information for the planes table
     plane = cursor.fetchone()
-    if plane: # Checking that the plane does in fact exist
-        cursor.execute("SELECT opened FROM popular WHERE pid = ?", (plane_id,)) # Fetching how many times the plane's page has been opened
+    if plane:  # Checking that the plane does in fact exist
+        cursor.execute("SELECT opened FROM popular WHERE pid = ?", (plane_id,))  # Fetching how many times the plane's page has been opened
         opened = cursor.fetchone()
-        if opened: # Checking if the plane exists in the popular table and increasing the amount of times the page has been opened
+        if opened:  # Checking if the plane exists in the popular table and increasing the amount of times the page has been opened
             opened = opened[0] + 1
             cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;", (opened, plane_id))
-        else: # If the plane does not exist in the popular table add the plane into the popular table with its 1 view (times opened)
+        else:  # If the plane does not exist in the popular table add the plane into the popular table with its 1 view (times opened)
                 cursor.execute("""
                     INSERT INTO popular (pid, opened)
                     VALUES (?, 1)
@@ -221,7 +221,7 @@ def plane(plane_id): # Page function
         connection.close()
         planeimg = f"data:image/png;base64,{plane[3]}"
         return render_template('plane.html', planeid=plane[0], planename=plane[1], planedesc=plane[2], planeimg=planeimg, avgrating=avg_rating)
-    else: # If the plane does not exist return a 404 error
+    else:  # If the plane does not exist return a 404 error
         return "Plane not found", 404
 
 
@@ -233,19 +233,19 @@ def engines():
     cursor.execute(query)
     engines = cursor.fetchall()
     connection.close()
-    enginelist = [[engine[0], engine[1], engine[2], engine[3], engine[-1]] for engine in engines] # Creating nested lists inside the one list with the engine ID, name, description, picture, and avg rating
+    enginelist = [[engine[0], engine[1], engine[2], engine[3], engine[-1]] for engine in engines]  # Creating nested lists inside the one list with the engine ID, name, description, picture, and avg rating
     index = -1
-    for i in enginelist: # Turning the images into something that can be processes by html
+    for i in enginelist:  # Turning the images into something that can be processes by html
         index += 1
         enginelist[index][3] = f"data:image/png;base64,{enginelist[index][3]}"
     return render_template("engines.html", engines=enginelist, sort_option=sort_option)
 
 
-@app.route("/engine/<string:engine_id>", methods=["GET", "POST"]) # Page route and form methods
-def engine(engine_id): # Page function
-    connection, cursor = databaseOpen() # Connecting to the database
+@app.route("/engine/<string:engine_id>", methods=["GET", "POST"])  # Page route and form methods
+def engine(engine_id):  # Page function
+    connection, cursor = databaseOpen()  # Connecting to the database
     if request.method == "POST":
-        rating = request.form.get("rating") # Getting the rating given by the user
+        rating = request.form.get("rating")  # Getting the rating given by the user
         if rating:
             rating = int(rating)
             cursor.execute("""
@@ -356,13 +356,13 @@ def edit(item_type, item_id):
 
             connection.commit()
             connection.close()
-            return redirect(f"/{item_type}/{item_id}") # Redricts to the page
+            return redirect(f"/{item_type}/{item_id}")  # Redricts to the page
         else:
             error = "Incorrect password. Please try again."
             item = (name, description)
             connection.close()
             return render_template("edit.html", item_type=item_type, item_id=item_id, item=item, error=error)
-    
+
     # Fetching name, description, and picture from the databse to show the user what is already there
     if item_type == "plane":
         cursor.execute("SELECT name, description, picture FROM Plane WHERE id = ?", (item_id,))
@@ -394,7 +394,7 @@ def search():
         cursor.execute(search_query, (search_term, search_term, search_term, search_term))
         results = cursor.fetchall()
         connection.close()
-        return jsonify({"results": results}) # Turning the results into something json can understand
+        return jsonify({"results": results})  # Turning the results into something json can understand
     return jsonify({"results": []})
 
 
@@ -435,45 +435,3 @@ def triangles(lines, dir):
         for i in range(1, lines + 1):
             actualLines.append(" "*(lines-i) + "*"*(i-1) + "*" + "*"*(i-1))
     return render_template("triangle.html", triangle=actualLines)
-
-
-# Easter egg code
-@app.route("/asciiart/<string:letters>/")
-def asciiArt(letters):
-    asciiLeters1 = [["q", " ██████╗ "], ["w", "██╗    ██╗"]]
-    asciiLeters2 = [["q", "██╔═══██╗"], ["w", "██║    ██║"]]
-    asciiLeters3 = [["q", "██║   ██║"], ["w", "██║ █╗ ██║"]]
-    asciiLeters4 = [["q", "██║▄▄ ██║"], ["w", "██║███╗██║"]]
-    asciiLeters5 = [["q", "╚██████╔╝"], ["w", "╚███╔███╔╝"]]
-    asciiLeters6 = [["q", " ╚══▀▀═╝ "], ["w", " ╚══╝╚══╝ "]]
-    ascii1 = []
-    ascii2 = []
-    ascii3 = []
-    ascii4 = []
-    ascii5 = []
-    ascii6 = []
-    for i in letters:
-        for letter in asciiLeters1:
-            if letter[0] == i:
-                ascii1.append(letter[1])
-        for letter in asciiLeters2:
-            if letter[0] == i:
-                ascii2.append(letter[1])
-        for letter in asciiLeters3:
-            if letter[0] == i:
-                ascii3.append(letter[1])
-        for letter in asciiLeters4:
-            if letter[0] == i:
-                ascii4.append(letter[1])
-        for letter in asciiLeters5:
-            if letter[0] == i:
-                ascii5.append(letter[1])
-        for letter in asciiLeters6:
-            if letter[0] == i:
-                ascii6.append(letter[1])
-    print(asciiLeters1, asciiLeters2, asciiLeters3, asciiLeters4, asciiLeters5, asciiLeters6)
-    return render_template("asciiart.html", asciiart=[ascii1, ascii2, ascii3, ascii4, ascii5, ascii6])
-
-
-if __name__ == "__main__":
-    app.run(debug=True)  # live updates code when building a website
