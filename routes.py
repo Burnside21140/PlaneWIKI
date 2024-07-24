@@ -36,13 +36,13 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
             """
         elif sort == "A-Z" or sort == "Z-A":
             query = f"""
-                SELECT id, name, description, picture, 'plane' AS type, name AS sort_value, 
-                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating 
+                SELECT id, name, description, picture, 'plane' AS type, name AS sort_value,
+                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating
                 FROM Plane
                 LEFT JOIN popular ON Plane.id = popular.pid
                 UNION ALL
-                SELECT id, name, description, picture, 'engine' AS type, name AS sort_value, 
-                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating 
+                SELECT id, name, description, picture, 'engine' AS type, name AS sort_value,
+                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating
                 FROM Engine
                 LEFT JOIN popular ON Engine.id = popular.eid
                 ORDER BY sort_value COLLATE NOCASE {'DESC' if sort == 'Z-A' else 'ASC'}
@@ -111,7 +111,7 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
                 ORDER BY Plane.id DESC
             """
     elif page == "engines":
-        if sort == "new" or sort == "old"  or sort == "A-Z" or sort == "Z-A":
+        if sort == "new" or sort == "old" or sort == "A-Z" or sort == "Z-A":
             query = f"""
                 SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
                 LEFT JOIN popular ON Engine.id = popular.eid
@@ -203,10 +203,10 @@ def plane(plane_id):  # Page function
             opened = opened[0] + 1
             cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;", (opened, plane_id))
         else:  # If the plane does not exist in the popular table add the plane into the popular table with its 1 view (times opened)
-                cursor.execute("""
-                    INSERT INTO popular (pid, opened)
-                    VALUES (?, 1)
-                """, (plane_id,))
+            cursor.execute("""
+                INSERT INTO popular (pid, opened)
+                VALUES (?, 1)
+            """, (plane_id,))
         connection.commit()
         cursor.execute("SELECT ratings, totalratings FROM popular WHERE pid = ?", (plane_id,))
         rating_info = cursor.fetchone()
@@ -289,28 +289,28 @@ def create():
         description = request.form.get("description")
         picture = request.form.get("picture")
         password = request.form.get("password")
-        if name and description and password: # Checking that the required fields are filled
+        if name and description and password:  # Checking that the required fields are filled
             # Insert new data into the plane/engine table then the popular table
             connection, cursor = databaseOpen() 
             if plane_engine == "plane":
                 cursor.execute("INSERT INTO plane (name, description, picture, password) VALUES (?, ?, ?, ?)",
-                            (name, description, picture, password))
+                              (name, description, picture, password))
                 connection.commit()
                 cursor.execute("SELECT id FROM plane WHERE name = ? AND description = ? AND picture = ? AND password = ?",
-                            (name, description, picture, password))
+                              (name, description, picture, password))
                 id = cursor.fetchone()
                 cursor.execute("INSERT INTO popular (pid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)",
-                            (id[0],))
+                              (id[0],))
                 connection.commit()
             elif plane_engine == "engine":
                 cursor.execute("INSERT INTO engine (name, description, picture, password) VALUES (?, ?, ?, ?)",
-                            (name, description, picture, password))
+                              (name, description, picture, password))
                 connection.commit()
                 cursor.execute("SELECT id FROM engine WHERE name = ? AND description = ? AND picture = ? AND password = ?",
-                            (name, description, picture, password))
+                              (name, description, picture, password))
                 id = cursor.fetchone()
                 cursor.execute("INSERT INTO popular (eid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)",
-                            (id[0],))
+                              (id[0],))
                 connection.commit()
             connection.close()
             # Redricting to a page to tell them the pafe was created or back to the create page to try again
