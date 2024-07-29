@@ -396,3 +396,7 @@ def search():
         connection.close()
         return jsonify({"results": results})  # Turning the results into something json can understand
     return jsonify({"results": []})
+
+if __name__ == "__main__":
+    app.run(debug=True)  # live updates code when building a website
+    
