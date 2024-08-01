@@ -161,8 +161,10 @@ def home():  # Page function
         for n in i:
             nested_list.append(n)
         list_of_pages.append(nested_list)
-        list_of_pages[index][3] = f"data:image/png;base64,{list_of_pages[index][3]}"
-    return render_template("home.html", pages=list_of_pages, sort_option=sort_option)  # Rendering the home.html file and passing the required variables for Jinja template
+        list_of_pages[index][3] = f"""data:image/png;base64,
+                                  {list_of_pages[index][3]}"""
+    return render_template("home.html", pages=list_of_pages, 
+                           sort_option=sort_option)  # Rendering the home.html file and passing the required variables for Jinja template
 
 
 @app.route("/planes")
@@ -201,7 +203,8 @@ def plane(plane_id):  # Page function
         opened = cursor.fetchone()
         if opened:  # Checking if the plane exists in the popular table and increasing the amount of times the page has been opened
             opened = opened[0] + 1
-            cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;", (opened, plane_id))
+            cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;",
+                           (opened, plane_id))
         else:  # If the plane does not exist in the popular table add the plane into the popular table with its 1 view (times opened)
             cursor.execute("""
                 INSERT INTO popular (pid, opened)
@@ -220,8 +223,11 @@ def plane(plane_id):  # Page function
             avg_rating = 0
         connection.close()
         planeimg = f"data:image/png;base64,{plane[3]}"
-        return render_template('plane.html', planeid=plane[0], planename=plane[1], planedesc=plane[2], planeimg=planeimg, avgrating=avg_rating)
-    else:  # If the plane does not exist return a 404 error
+        return render_template('plane.html', planeid=plane[0],
+                               planename=plane[1], planedesc=plane[2],
+                               planeimg=planeimg, avgrating=avg_rating)
+    # If the plane does not exist return a 404 error
+    else:
         return "Plane not found", 404
 
 
@@ -233,19 +239,25 @@ def engines():
     cursor.execute(query)
     engines = cursor.fetchall()
     connection.close()
-    enginelist = [[engine[0], engine[1], engine[2], engine[3], engine[-1]] for engine in engines]  # Creating nested lists inside the one list with the engine ID, name, description, picture, and avg rating
+    # Creating nested lists inside the one list with the engine ID, name, description, picture, and avg rating
+    enginelist = [[engine[0], engine[1], engine[2], engine[3], engine[-1]]
+                  for engine in engines]
     index = -1
-    for i in enginelist:  # Turning the images into something that can be processes by html
+    # Turning the images into something that can be processes by html
+    for i in enginelist:
         index += 1
         enginelist[index][3] = f"data:image/png;base64,{enginelist[index][3]}"
-    return render_template("engines.html", engines=enginelist, sort_option=sort_option)
+    return render_template("engines.html", engines=enginelist,
+                           sort_option=sort_option)
 
 
-@app.route("/engine/<string:engine_id>", methods=["GET", "POST"])  # Page route and form methods
-def engine(engine_id):  # Page function
-    connection, cursor = databaseOpen()  # Connecting to the database
+@app.route("/engine/<string:engine_id>", methods=["GET", "POST"])
+def engine(engine_id):
+    # Connecting to the database
+    connection, cursor = databaseOpen()
     if request.method == "POST":
-        rating = request.form.get("rating")  # Getting the rating given by the user
+        # Getting the rating given by the user
+        rating = request.form.get("rating")
         if rating:
             rating = int(rating)
             cursor.execute("""
@@ -260,9 +272,11 @@ def engine(engine_id):  # Page function
     opened = cursor.fetchone()
     if opened:
         opened = opened[0] + 1
-        cursor.execute("UPDATE popular SET opened = ? WHERE eid = ?;", (opened, engine_id))
+        cursor.execute("UPDATE popular SET opened = ? WHERE eid = ?;",
+                       (opened, engine_id))
         connection.commit()
-    cursor.execute("SELECT ratings, totalratings FROM popular WHERE eid = ?", (engine_id,))
+    cursor.execute("SELECT ratings, totalratings FROM popular WHERE eid = ?",
+                   (engine_id,))
     rating_info = cursor.fetchone()
     if rating_info:
         ratings, totalratings = rating_info
@@ -275,7 +289,9 @@ def engine(engine_id):  # Page function
     connection.close()
     engineimg = f"data:image/png;base64,{engine[3]}"
     if engine:
-        return render_template('engine.html', engineid=engine[0], enginename=engine[1], enginedesc=engine[2], engineimg=engineimg, avgrating=avg_rating)
+        return render_template('engine.html', engineid=engine[0],
+                               enginename=engine[1], enginedesc=engine[2],
+                               engineimg=engineimg, avgrating=avg_rating)
     else:
         return "Engine not found", 404
 
@@ -289,28 +305,37 @@ def create():
         description = request.form.get("description")
         picture = request.form.get("picture")
         password = request.form.get("password")
-        if name and description and password:  # Checking that the required fields are filled
+        # Checking that the required fields are filled
+        if name and description and password:
             # Insert new data into the plane/engine table then the popular table
             connection, cursor = databaseOpen() 
             if plane_engine == "plane":
-                cursor.execute("INSERT INTO plane (name, description, picture, password) VALUES (?, ?, ?, ?)",
-                              (name, description, picture, password))
+                cursor.execute("""INSERT INTO plane (name, description,
+                               picture, password) VALUES (?, ?, ?, ?)""",
+                               (name, description, picture, password))
                 connection.commit()
-                cursor.execute("SELECT id FROM plane WHERE name = ? AND description = ? AND picture = ? AND password = ?",
-                              (name, description, picture, password))
+                cursor.execute("""SELECT id FROM plane WHERE name = ? AND
+                               description = ? AND picture = ?
+                               AND password = ?""",
+                               (name, description, picture, password))
                 id = cursor.fetchone()
-                cursor.execute("INSERT INTO popular (pid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)",
-                              (id[0],))
+                cursor.execute("""INSERT INTO popular (pid, opened, ratings,
+                               totalratings) VALUES (?, 0, 0, 0)""",
+                               (id[0],))
                 connection.commit()
             elif plane_engine == "engine":
-                cursor.execute("INSERT INTO engine (name, description, picture, password) VALUES (?, ?, ?, ?)",
-                              (name, description, picture, password))
+                cursor.execute("""INSERT INTO engine (name, description,
+                               picture, password) VALUES (?, ?, ?, ?)""",
+                               (name, description, picture, password))
                 connection.commit()
-                cursor.execute("SELECT id FROM engine WHERE name = ? AND description = ? AND picture = ? AND password = ?",
-                              (name, description, picture, password))
+                cursor.execute("""SELECT id FROM engine WHERE name = ?
+                               AND description = ? AND picture = ?
+                               AND password = ?""",
+                               (name, description, picture, password))
                 id = cursor.fetchone()
-                cursor.execute("INSERT INTO popular (eid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)",
-                              (id[0],))
+                cursor.execute("""INSERT INTO popular (eid, opened, ratings,
+                               totalratings) VALUES (?, 0, 0, 0)""",
+                               (id[0],))
                 connection.commit()
             connection.close()
             # Redricting to a page to tell them the pafe was created or back to the create page to try again
@@ -333,9 +358,11 @@ def edit(item_type, item_id):
 
         # Fetch the current password from the database
         if item_type == "plane":
-            cursor.execute("SELECT password FROM Plane WHERE id = ?", (item_id,))
+            cursor.execute("SELECT password FROM Plane WHERE id = ?",
+                           (item_id,))
         elif item_type == "engine":
-            cursor.execute("SELECT password FROM Engine WHERE id = ?", (item_id,))
+            cursor.execute("SELECT password FROM Engine WHERE id = ?",
+                           (item_id,))
         
         current_password = cursor.fetchone()
 
@@ -361,11 +388,13 @@ def edit(item_type, item_id):
             error = "Incorrect password. Please try again."
             item = (name, description)
             connection.close()
-            return render_template("edit.html", item_type=item_type, item_id=item_id, item=item, error=error)
+            return render_template("edit.html", item_type=item_type,
+                                   item_id=item_id, item=item, error=error)
 
     # Fetching name, description, and picture from the databse to show the user what is already there
     if item_type == "plane":
-        cursor.execute("SELECT name, description, picture FROM Plane WHERE id = ?", (item_id,))
+        cursor.execute("""SELECT name, description,
+                       picture FROM Plane WHERE id = ?""", (item_id,))
     elif item_type == "engine":
         cursor.execute("SELECT name, description, picture FROM Engine WHERE id = ?", (item_id,))
 
@@ -375,7 +404,8 @@ def edit(item_type, item_id):
     if not item:
         return "Item not found", 404
 
-    return render_template("edit.html", item_type=item_type, item_id=item_id, item=item)
+    return render_template("edit.html", item_type=item_type,
+                           item_id=item_id, item=item)
 
 
 @app.route("/search")
@@ -391,12 +421,15 @@ def search():
             ORDER BY name COLLATE NOCASE
         """
         search_term = f"%{query}%"
-        cursor.execute(search_query, (search_term, search_term, search_term, search_term))
+        cursor.execute(search_query,
+                       (search_term, search_term, search_term, search_term))
         results = cursor.fetchall()
         connection.close()
-        return jsonify({"results": results})  # Turning the results into something json can understand
+        # Turning the results into something json can understand
+        return jsonify({"results": results})
     return jsonify({"results": []})
 
 
 if __name__ == "__main__":
-    app.run(debug=True)  # live updates code when building a website
+    # live update code when building a website
+    app.run(debug=True)
