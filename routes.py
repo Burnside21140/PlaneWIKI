@@ -145,9 +145,10 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
     return query
 
 
-@app.route("/", methods=["GET"])  # Page route and form methods
-def home():  # Page function
-    sort_option = request.args.get("Sort", "new")  # Fetching the desired sort method to fetch the planes and engines in the corresponding order
+@app.route("/", methods=["GET"])
+def home():
+    # Fetching the desired sort method to fetch the planes and engines in the corresponding order
+    sort_option = request.args.get("Sort", "new")
     connection, cursor = databaseOpen() 
     query = databaseSelect('home', sort_option)
     cursor.execute(query) 
@@ -155,7 +156,8 @@ def home():  # Page function
     connection.close()
     list_of_pages = []
     index = -1
-    for i in pages:  # Turning the images into something that can be processes by html
+    # Turning the images into something that can be processes by html
+    for i in pages:
         index += 1
         nested_list = []
         for n in i:
@@ -163,8 +165,9 @@ def home():  # Page function
         list_of_pages.append(nested_list)
         list_of_pages[index][3] = f"""data:image/png;base64,
                                   {list_of_pages[index][3]}"""
-    return render_template("home.html", pages=list_of_pages, 
-                           sort_option=sort_option)  # Rendering the home.html file and passing the required variables for Jinja template
+    # Rendering the home.html file and passing the required variables for Jinja template
+    return render_template("home.html", pages=list_of_pages,
+                           sort_option=sort_option)
 
 
 @app.route("/planes")
@@ -175,43 +178,56 @@ def planes():
     cursor.execute(query)
     planes = cursor.fetchall()
     connection.close()
-    planelist = [[plane[0], plane[1], plane[2], plane[3], plane[-1]] for plane in planes]  # Creating nested lists inside the one list with the plane ID, name, description, picture, and avg rating
+    # Creating nested lists inside the one list with the plane ID, name, description, picture, and avg rating
+    planelist = [[plane[0], plane[1], plane[2], plane[3], plane[-1]]
+                  for plane in planes]
     index = -1
-    for i in planelist:  # Turning the images into something that can be processes by html
+    # Turning the images into something that can be processes by html
+    for i in planelist:
         index += 1
         planelist[index][3] = f"data:image/png;base64,{planelist[index][3]}"
-    return render_template("planes.html", planes=planelist, sort_option=sort_option)
+    return render_template("planes.html", planes=planelist,
+                           sort_option=sort_option)
 
 
-@app.route("/plane/<string:plane_id>", methods=["GET", "POST"])  # Page route with the desired methods
-def plane(plane_id):  # Page function
-    connection, cursor = databaseOpen()  # Connecting to the database
-    if request.method == "POST":  # Receiving the rating given
-        rating = request.form.get("rating")  # Receiving the value of the rating
+@app.route("/plane/<string:plane_id>", methods=["GET", "POST"])
+def plane(plane_id):
+    connection, cursor = databaseOpen()
+    # Receiving the rating given
+    if request.method == "POST":
+        # Receiving the value of the rating
+        rating = request.form.get("rating")
         if rating:
             rating = int(rating)
+            # Adding the value of the rating and the amount of ratings to the plane in the popular table
             cursor.execute("""
                 UPDATE popular
                 SET ratings = ratings + ?, totalratings = totalratings + 1
                 WHERE pid = ?
-            """, (rating, plane_id))  # Adding the value of the rating and the amount of ratings to the plane in the popular table
+            """, (rating, plane_id))
             connection.commit()
-    cursor.execute("SELECT * FROM Plane WHERE id = ?", (plane_id,))  # Fetching the plane's information for the planes table
+    # Fetching the plane's information for the planes table
+    cursor.execute("SELECT * FROM Plane WHERE id = ?", (plane_id,))
     plane = cursor.fetchone()
-    if plane:  # Checking that the plane does in fact exist
-        cursor.execute("SELECT opened FROM popular WHERE pid = ?", (plane_id,))  # Fetching how many times the plane's page has been opened
+    # Checking that the plane does in fact exist
+    if plane:
+        # Fetching how many times the plane's page has been opened
+        cursor.execute("SELECT opened FROM popular WHERE pid = ?", (plane_id,))
         opened = cursor.fetchone()
-        if opened:  # Checking if the plane exists in the popular table and increasing the amount of times the page has been opened
+        # Checking if the plane exists in the popular table and increasing the amount of times the page has been opened
+        if opened:
             opened = opened[0] + 1
             cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;",
                            (opened, plane_id))
-        else:  # If the plane does not exist in the popular table add the plane into the popular table with its 1 view (times opened)
+        # If the plane does not exist in the popular table add the plane into the popular table with its 1 view (times opened)
+        else:
             cursor.execute("""
                 INSERT INTO popular (pid, opened)
                 VALUES (?, 1)
             """, (plane_id,))
         connection.commit()
-        cursor.execute("SELECT ratings, totalratings FROM popular WHERE pid = ?", (plane_id,))
+        cursor.execute("""SELECT ratings, totalratings
+                       FROM popular WHERE pid = ?""", (plane_id,))
         rating_info = cursor.fetchone()
         if rating_info:
             ratings, totalratings = rating_info
@@ -308,7 +324,7 @@ def create():
         # Checking that the required fields are filled
         if name and description and password:
             # Insert new data into the plane/engine table then the popular table
-            connection, cursor = databaseOpen() 
+            connection, cursor = databaseOpen()
             if plane_engine == "plane":
                 cursor.execute("""INSERT INTO plane (name, description,
                                picture, password) VALUES (?, ?, ?, ?)""",
@@ -363,7 +379,7 @@ def edit(item_type, item_id):
         elif item_type == "engine":
             cursor.execute("SELECT password FROM Engine WHERE id = ?",
                            (item_id,))
-        
+
         current_password = cursor.fetchone()
 
         # Checking if the password is correct before updating the data
@@ -396,8 +412,8 @@ def edit(item_type, item_id):
         cursor.execute("""SELECT name, description,
                        picture FROM Plane WHERE id = ?""", (item_id,))
     elif item_type == "engine":
-        cursor.execute("SELECT name, description, picture FROM Engine WHERE id = ?", (item_id,))
-
+        cursor.execute("""SELECT name, description, picture
+                       FROM Engine WHERE id = ?""", (item_id,))
     item = cursor.fetchone()
     connection.close()
 
