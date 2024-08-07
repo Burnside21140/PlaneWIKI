@@ -149,9 +149,9 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
 def home():
     # Fetching the desired sort method to fetch the planes and engines in the corresponding order
     sort_option = request.args.get("Sort", "new")
-    connection, cursor = databaseOpen() 
+    connection, cursor = databaseOpen()
     query = databaseSelect('home', sort_option)
-    cursor.execute(query) 
+    cursor.execute(query)
     pages = cursor.fetchall()
     connection.close()
     list_of_pages = []
