@@ -1,20 +1,49 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-<form method="POST" action="/edit/{{ item_type }}/{{ item_id }}">
-    <label for="PlaneEngine">Plane or Engine</label> <br>
-    <select name="PlaneEngine" id="PlaneEngine" disabled>
-        <option value="plane" {% if item_type == "plane" %}selected{% endif %}>Plane</option>
-        <option value="engine" {% if item_type == "engine" %}selected{% endif %}>Engine</option>
-    </select> <br>
-    <label for="name">Name</label> <br>
-    <input type="text" id="name" name="name" value="{{ item[0] }}"> <br>
-    <label for="description">Description</label> <br>
-    <input type="text" id="description" name="description" value="{{ item[1] }}"> <br>
-    <label for="picture">Picture</label> <br>
-    <input type="text" id="picture" name="picture" value="{{ item[2] }}"> <br>
-    <label for="password">Password</label> <br>
-    <input type="password" id="password" name="password" value=""> <br>
-    <button type="submit">Submit</button>
-</form>
+
+<div class="pe-container">
+    <br>
+    <form method="POST" action="/edit/{{ item_type }}/{{ item_id }}">
+        <div class="creation-section">
+            <label for="PlaneEngine" class="label-heading">Plane or Engine</label>
+            <div class="pe-info">
+                <select name="PlaneEngine" id="PlaneEngine" disabled>
+                    <option value="plane" {% if item_type == "plane" %}selected{% endif %}>Plane</option>
+                    <option value="engine" {% if item_type == "engine" %}selected{% endif %}>Engine</option>
+                </select>
+            </div>
+        </div>
+        <div class="creation-section">
+            <label for="name" class="label-heading">Name</label>
+            <div class="pe-info">
+                <input type="text" id="name" name="name" value="{{ item[0] }}">
+            </div>
+        </div>
+        <div class="creation-section">
+            <label for="description" class="label-heading">Description</label>
+            <div class="pe-info">
+                <input type="text" id="description" name="description" value="{{ item[1] }}">
+            </div>
+        </div>
+        <div class="creation-section">
+            <label for="picture" class="label-heading">Picture</label>
+            <div class="pe-info">
+                <input type="text" id="picture" name="picture" value="{{ item[2] }}">
+            </div>
+        </div>
+        <div class="creation-section">
+            <label for="password" class="label-heading">Password</label>
+            <div class="pe-info">
+                <input type="password" id="password" name="password" value="">
+            </div>
+        </div>
+        <br>
+        <button type="submit" class="submit-creation">Submit</button>
+        <br>
+    </form>
+</div>
+
+<br>
+
 {% endblock %}

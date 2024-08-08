@@ -173,7 +173,37 @@ a {
 
 /** Create and Edit Page **/
 
+.label-heading {
+    display: block;
+    font-size: 2em;
+    margin-block-start: 0.67em;
+    margin-block-end: 0.67em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+    unicode-bidi: isolate;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 15px;
+}
 
+.creation-section {
+    border-radius: 15px;
+    width: 90%;
+    height: auto;
+    background-color: #3E4E7B;
+    align-self: center;
+    margin: auto;
+    margin-top: 25px;
+}
+
+.submit-creation {
+    display: block;
+    font-size: 2em;
+    font-weight: bold;
+    unicode-bidi: isolate;
+    margin: auto;
+}
 
 /** Font **/
 

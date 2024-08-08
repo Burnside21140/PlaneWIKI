@@ -180,7 +180,7 @@ def planes():
     connection.close()
     # Creating nested lists inside the one list with the plane ID, name, description, picture, and avg rating
     planelist = [[plane[0], plane[1], plane[2], plane[3], plane[-1]]
-                  for plane in planes]
+                 for plane in planes]
     index = -1
     # Turning the images into something that can be processes by html
     for i in planelist:
