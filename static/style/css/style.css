@@ -205,6 +205,21 @@ a {
     margin: auto;
 }
 
+.creation-input {
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 15px;
+}
+
+.creation-input textarea {
+    width: 99%;
+    resize: vertical;
+}
+
+.creation-input input {
+    width: 99%;
+}
+
 /** Font **/
 
 body {
