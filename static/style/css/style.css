@@ -104,6 +104,10 @@ a {
     text-decoration: inherit;
 }
 
+p {
+    text-wrap: pretty;
+}
+
 .logo {
     background-color: #3E4E7B;
     padding-left: 20px;
@@ -141,15 +145,20 @@ a {
 .pe-info {
     display: grid;
     grid-template-columns: 1fr 3fr;
-    grid-gap: 5px;
+    grid-gap: 15px;
     padding-left: 15px;
     padding-right: 15px;
     padding-bottom: 15px;
 }
 
 .pe-info img {
-    height: 100%;
     width: 100%;
+    margin-top: 1em;
+}
+
+.pe-full-page-text {
+    white-space: pre;
+    text-wrap: pretty;
 }
 
 .pe-sort {
@@ -169,6 +178,17 @@ a {
     .pe-container {
         width: 90%;
     }
+}
+
+@media (max-width: 600px) {
+    .pe-info {
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        grid-gap: 15px;
+        padding-left: 15px;
+        padding-right: 15px;
+        padding-bottom: 15px;
+    }    
 }
 
 /** Create and Edit Page **/
