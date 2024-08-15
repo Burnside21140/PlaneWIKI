@@ -1,6 +1,32 @@
+
+body {
+    margin: 0px;
+    font-size: 15px;
+}
+
+a {
+    color: inherit;
+    text-decoration: inherit;
+}
+
+p {
+    text-wrap: pretty;
+}
+
+body {
+    font-family: "PT Sans Narrow", sans-serif;
+}
+
 /**
  * Navigation block
  **/
+
+.logo {
+    background-color: #3E4E7B;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
 nav {
     font-size: 120%;
     font-weight: bold;
@@ -8,7 +34,6 @@ nav {
     color: white;
 }
 
-/* by using "nav ul" instead of just "ul", only an unordered list in the nav bar will take on this styling, meaning it doesn't mess up unordered lists in the main content */
 nav ul {
     list-style-type: none;
     text-align: center;
@@ -48,29 +73,6 @@ nav ul a {
     align-items: center;
 }
 
-@media (max-width: 1100px) {
-    nav li {
-        padding: 0px;
-        font-size: 30px;
-    }
-
-    .nav-bar {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;
-    }
-
-    .nav-bar-fill {
-        grid-column: span 3;
-    }
-
-    nav ul li input {
-        font-size: 25px;
-        width: 100%;
-        height: 100%;
-        border: 0px;
-    }
-}
-
 /* Search bar styles */
 .search-results {
     position: fixed;
@@ -92,30 +94,15 @@ nav ul a {
     background-color: #3E4E7B;
 }
 
-/* end of nav block */
+/** 
+ * End of nav and search bar block 
+ **/
 
-body {
-    margin: 0px;
-    font-size: 15px;
-}
+/** 
+ * Plane and engines lists and pages block
+ **/
 
-a {
-    color: inherit;
-    text-decoration: inherit;
-}
-
-p {
-    text-wrap: pretty;
-}
-
-.logo {
-    background-color: #3E4E7B;
-    padding-left: 20px;
-    padding-right: 20px;
-}
-
-/* Plane and engines lists */
-.pe-container {
+ .pe-container {
     border-radius: 15px;
     width: 80%;
     height: auto;
@@ -151,6 +138,15 @@ p {
     padding-bottom: 15px;
 }
 
+.pe-full-page-section {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    grid-gap: 15px;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 15px;
+}
+
 .pe-info img {
     width: 100%;
     margin-top: 1em;
@@ -174,24 +170,13 @@ p {
     font-size: 15px;
 }
 
-@media (max-width: 1100px) {
-    .pe-container {
-        width: 90%;
-    }
-}
+/** 
+ * End of plane and engines lists and pages block
+ **/
 
-@media (max-width: 600px) {
-    .pe-info {
-        display: grid;
-        grid-template-rows: 1fr 1fr;
-        grid-gap: 15px;
-        padding-left: 15px;
-        padding-right: 15px;
-        padding-bottom: 15px;
-    }    
-}
-
-/** Create and Edit Page **/
+/** 
+ * Create and Edit Pages block 
+ **/
 
 .label-heading {
     display: block;
@@ -240,13 +225,45 @@ p {
     width: 99%;
 }
 
-/** Font **/
+/** 
+ * End of create and Edit Pages block 
+ **/
 
-body {
-    font-family: "PT Sans Narrow", sans-serif;
+@media (max-width: 600px) { 
+    .pe-full-page-section {
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        grid-template-columns: 1fr;
+        grid-gap: 15px;
+        padding-left: 15px;
+        padding-right: 15px;
+        padding-bottom: 15px;
+    }   
 }
 
-/** Easter egg **/
-.triangle {
-    margin: 0px;
+@media (max-width: 1100px) {
+    nav li {
+        padding: 0px;
+        font-size: 30px;
+    }
+
+    .nav-bar {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
+
+    .nav-bar-fill {
+        grid-column: span 3;
+    }
+
+    nav ul li input {
+        font-size: 25px;
+        width: 100%;
+        height: 100%;
+        border: 0px;
+    }
+    
+    .pe-container {
+        width: 90%;
+    }
 }
