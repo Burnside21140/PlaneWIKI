@@ -447,5 +447,5 @@ def search():
 
 
 if __name__ == "__main__":
-    # live update code when building a website
+    # Live update code when building a website
     app.run(debug=True)
