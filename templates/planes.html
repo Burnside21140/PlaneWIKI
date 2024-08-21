@@ -1,6 +1,22 @@
 {% extends 'layout.html' %}
 
 {% block content %}
+<script>
+    var i;
+    var divsh = document.getElementsByTagName('div');
+    var divs = [].slice.call(divsh);
+    console.log(divs);
+    for (i = 0; i < divs.length; i++) {
+        console.log(divs);
+        console.log(i);
+        console.log(divs[i].className);
+        if (divs[i].className == 'pe-info'){
+            divs[i].innerHTML = divs[i].innerHTML.substring(0, 20);
+            console.log('squad fam')
+        }
+    }
+</script>
+
 <div class="pe-container">
     <div class="pe-header">
         <div>
