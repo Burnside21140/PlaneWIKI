@@ -1,6 +1,46 @@
 {% extends 'layout.html' %}
 
 {% block content %}
+<script>
+    window.addEventListener('load', function() {
+        const sections = document.querySelectorAll('.pe-section');
+
+        sections.forEach(section => {
+            const img = section.querySelector('img');
+            const text = section.querySelector('.pe-info p');
+
+            if (img && text) {
+                const imgHeight = img.clientHeight;
+                const originalText = text.textContent;
+                let truncatedText = originalText;
+
+                // Create a temporary element to measure text height
+                const tempElement = document.createElement('span');
+                tempElement.style.visibility = 'hidden';
+                tempElement.style.position = 'absolute';
+                tempElement.style.whiteSpace = 'normal';
+                tempElement.style.width = `${text.clientWidth}px`;
+                tempElement.style.font = window.getComputedStyle(text).font;
+                document.body.appendChild(tempElement);
+
+                for (let i = originalText.length; i > 0; i--) {
+                    tempElement.textContent = originalText.slice(0, i) + '...';
+
+                    if (tempElement.clientHeight <= imgHeight) {
+                        truncatedText = originalText.slice(0, i) + (i < originalText.length ? '...' : '');
+                        break;
+                    }
+                }
+
+                document.body.removeChild(tempElement);
+
+                text.textContent = truncatedText;
+            }
+        });
+    });
+</script>
+    
+
 <div class="pe-container">
     <div class="pe-header">
         <div>
