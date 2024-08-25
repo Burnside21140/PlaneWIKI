@@ -463,6 +463,11 @@ def search():
         return jsonify({"results": results})
     return jsonify({"results": []})
 
+ # Handling 404 errors to direct user to 404 page
+@app.errorhandler(404) 
+def not_found(eror): 
+  return render_template("404.html"), 404
+
 
 if __name__ == "__main__":
     # Live update code when building a website
