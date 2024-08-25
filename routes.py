@@ -156,13 +156,17 @@ def home():
     connection.close()
     list_of_pages = []
     index = -1
-    # Turning the images into something that can be processes by html
-    for i in pages:
+    for page in pages:
+        print(page)
         index += 1
-        nested_list = []
-        for n in i:
-            nested_list.append(n)
-        list_of_pages.append(nested_list)
+        if index < 10:
+            list_of_pages.append([page[0], page[1], page[2], page[3], page[-1]])
+        else:
+            break
+    # Turning the images into something that can be processes by html
+    index = -1
+    for i in list_of_pages:
+        index += 1
         list_of_pages[index][3] = f"""data:image/png;base64,
                                   {list_of_pages[index][3]}"""
     # Rendering the home.html file and passing the required variables for Jinja template
@@ -263,10 +267,17 @@ def engines():
     engines = cursor.fetchall()
     connection.close()
     # Creating nested lists inside the one list with the engine ID, name, description, picture, and avg rating
-    enginelist = [[engine[0], engine[1], engine[2], engine[3], engine[-1]]
-                  for engine in engines]
+    enginelist = []
     index = -1
+    for engine in engines:
+        print(engine)
+        index += 1
+        if index < 10:
+            enginelist.append([engine[0], engine[1], engine[2], engine[3], engine[-1]])
+        else:
+            break
     # Turning the images into something that can be processes by html
+    index = -1
     for i in enginelist:
         index += 1
         enginelist[index][3] = f"data:image/png;base64,{enginelist[index][3]}"
