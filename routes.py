@@ -157,10 +157,10 @@ def home():
     list_of_pages = []
     index = -1
     for page in pages:
-        print(page)
         index += 1
+        print([page[0], page[1], page[2], page[4], page[-1]])
         if index < 10:
-            list_of_pages.append([page[0], page[1], page[2], page[3], page[-1]])
+            list_of_pages.append([page[0], page[1], page[2], page[3], page[4], page[-1]])
         else:
             break
     # Turning the images into something that can be processes by html
@@ -273,7 +273,8 @@ def engines():
         print(engine)
         index += 1
         if index < 10:
-            enginelist.append([engine[0], engine[1], engine[2], engine[3], engine[-1]])
+            enginelist.append([engine[0], engine[1], engine[2],
+                               engine[3], engine[-1]])
         else:
             break
     # Turning the images into something that can be processes by html
@@ -463,10 +464,11 @@ def search():
         return jsonify({"results": results})
     return jsonify({"results": []})
 
- # Handling 404 errors to direct user to 404 page
-@app.errorhandler(404) 
-def not_found(eror): 
-  return render_template("404.html"), 404
+
+# Handling 404 errors to direct user to 404 page
+@app.errorhandler(404)
+def not_found(eror):
+    return render_template("404.html"), 404
 
 
 if __name__ == "__main__":
