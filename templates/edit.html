@@ -17,25 +17,25 @@
         <div class="creation-section">
             <label for="name" class="label-heading">Name</label>
             <div class="creation-input">
-                <input maxlength="79" type="text" id="name" name="name" value="{{ item[0] }}">
+                <input maxlength="79" minlength="1" type="text" id="name" name="name" value="{{ item[0] }}">
             </div>
         </div>
         <div class="creation-section">
             <label for="description" class="label-heading">Description</label>
             <div class="creation-input">
-                <textarea maxlength="10000" id="description" name="description">{{ item[1] }}</textarea>
+                <textarea maxlength="10000" minlength="1" id="description" name="description">{{ item[1] }}</textarea>
             </div>
         </div>
         <div class="creation-section">
             <label for="picture" class="label-heading">Picture</label>
             <div class="creation-input">
-                <textarea maxlength="4000000" id="picture" name="picture">{{ item[2] }}</textarea>
+                <textarea maxlength="4000000" minlength="1" id="picture" name="picture">{{ item[2] }}</textarea>
             </div>
         </div>
         <div class="creation-section">
             <label for="password" class="label-heading">Password</label>
             <div class="creation-input">
-                <input maxlength="79" type="password" id="password" name="password" value="">
+                <input maxlength="79" minlength="1" type="password" id="password" name="password" value="">
             </div>
         </div>
         <br>
