@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, jsonify
 
-import sqlite3, bcrypt
+import sqlite3
+import bcrypt
 
 app = Flask(__name__)
 
@@ -160,7 +161,8 @@ def home():
         index += 1
         print([page[0], page[1], page[2], page[4], page[-1]])
         if index < 10:
-            list_of_pages.append([page[0], page[1], page[2], page[3], page[4], page[-1]])
+            list_of_pages.append([page[0], page[1], page[2], page[3], page[4],
+                                  page[-1]])
         else:
             break
     # Turning the images into something that can be processes by html
@@ -343,7 +345,8 @@ def create():
         # Checking that the required fields are filled
         if name and description and password:
             # Hash the password
-            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'),
+                                            bcrypt.gensalt())
             # Insert new data into the plane/engine table then the popular table
             connection, cursor = databaseOpen()
             if plane_engine == "plane":
@@ -403,19 +406,20 @@ def edit(item_type, item_id):
         # Checking if the password is correct before updating the data
         if bcrypt.checkpw(entered_password.encode('utf-8'),
                           current_password_hash):
-            new_hashed_password = bcrypt.hashpw(entered_password.encode('utf-8'), bcrypt.gensalt())
+            hashed_password = bcrypt.hashpw(entered_password.encode('utf-8'),
+                                            bcrypt.gensalt())
             if item_type == "plane":
                 cursor.execute("""
                     UPDATE Plane
                     SET name = ?, description = ?, picture = ?, password = ?
                     WHERE id = ?
-                """, (name, description, picture, new_hashed_password, item_id))
+                """, (name, description, picture, hashed_password, item_id))
             elif item_type == "engine":
                 cursor.execute("""
                     UPDATE Engine
                     SET name = ?, description = ?, picture = ?, password = ?
                     WHERE id = ?
-                """, (name, description, picture, new_hashed_password, item_id))
+                """, (name, description, picture, hashed_password, item_id))
             connection.commit()
             connection.close()
             return redirect(f"/{item_type}/{item_id}")  # Redricts to the page
