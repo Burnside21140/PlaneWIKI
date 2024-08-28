@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, jsonify
 
-import sqlite3
+import sqlite3, bcrypt
 
 app = Flask(__name__)
 
@@ -342,17 +342,19 @@ def create():
         password = request.form.get("password")
         # Checking that the required fields are filled
         if name and description and password:
+            # Hash the password
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
             # Insert new data into the plane/engine table then the popular table
             connection, cursor = databaseOpen()
             if plane_engine == "plane":
                 cursor.execute("""INSERT INTO plane (name, description,
                                picture, password) VALUES (?, ?, ?, ?)""",
-                               (name, description, picture, password))
+                               (name, description, picture, hashed_password))
                 connection.commit()
                 cursor.execute("""SELECT id FROM plane WHERE name = ? AND
                                description = ? AND picture = ?
                                AND password = ?""",
-                               (name, description, picture, password))
+                               (name, description, picture, hashed_password))
                 id = cursor.fetchone()
                 cursor.execute("""INSERT INTO popular (pid, opened, ratings,
                                totalratings) VALUES (?, 0, 0, 0)""",
@@ -361,12 +363,12 @@ def create():
             elif plane_engine == "engine":
                 cursor.execute("""INSERT INTO engine (name, description,
                                picture, password) VALUES (?, ?, ?, ?)""",
-                               (name, description, picture, password))
+                               (name, description, picture, hashed_password))
                 connection.commit()
                 cursor.execute("""SELECT id FROM engine WHERE name = ?
                                AND description = ? AND picture = ?
                                AND password = ?""",
-                               (name, description, picture, password))
+                               (name, description, picture, hashed_password))
                 id = cursor.fetchone()
                 cursor.execute("""INSERT INTO popular (eid, opened, ratings,
                                totalratings) VALUES (?, 0, 0, 0)""",
@@ -383,15 +385,13 @@ def create():
 @app.route("/edit/<string:item_type>/<int:item_id>", methods=["GET", "POST"])
 def edit(item_type, item_id):
     connection, cursor = databaseOpen()
-
     if request.method == "POST":
         # Fetch the inputs
         name = request.form["name"]
         description = request.form["description"]
         picture = request.form["picture"]
         entered_password = request.form["password"]
-
-        # Fetch the current password from the database
+        # Fetch the current password hash from the database
         if item_type == "plane":
             cursor.execute("SELECT password FROM Plane WHERE id = ?",
                            (item_id,))
@@ -399,23 +399,23 @@ def edit(item_type, item_id):
             cursor.execute("SELECT password FROM Engine WHERE id = ?",
                            (item_id,))
 
-        current_password = cursor.fetchone()
-
+        current_password_hash = cursor.fetchone()[0]
         # Checking if the password is correct before updating the data
-        if current_password[0] == entered_password:
+        if bcrypt.checkpw(entered_password.encode('utf-8'),
+                          current_password_hash):
+            new_hashed_password = bcrypt.hashpw(entered_password.encode('utf-8'), bcrypt.gensalt())
             if item_type == "plane":
                 cursor.execute("""
                     UPDATE Plane
                     SET name = ?, description = ?, picture = ?, password = ?
                     WHERE id = ?
-                """, (name, description, picture, entered_password, item_id))
+                """, (name, description, picture, new_hashed_password, item_id))
             elif item_type == "engine":
                 cursor.execute("""
                     UPDATE Engine
                     SET name = ?, description = ?, picture = ?, password = ?
                     WHERE id = ?
-                """, (name, description, picture, entered_password, item_id))
-
+                """, (name, description, picture, new_hashed_password, item_id))
             connection.commit()
             connection.close()
             return redirect(f"/{item_type}/{item_id}")  # Redricts to the page
@@ -425,8 +425,7 @@ def edit(item_type, item_id):
             connection.close()
             return render_template("edit.html", item_type=item_type,
                                    item_id=item_id, item=item, error=error)
-
-    # Fetching name, description, and picture from the databse to show the user what is already there
+    # Fetching name, description, and picture from the database to show the user what is already there
     if item_type == "plane":
         cursor.execute("""SELECT name, description,
                        picture FROM Plane WHERE id = ?""", (item_id,))
@@ -435,10 +434,8 @@ def edit(item_type, item_id):
                        FROM Engine WHERE id = ?""", (item_id,))
     item = cursor.fetchone()
     connection.close()
-
     if not item:
         return "Item not found", 404
-
     return render_template("edit.html", item_type=item_type,
                            item_id=item_id, item=item)
 
