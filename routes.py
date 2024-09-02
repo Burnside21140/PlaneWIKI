@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, jsonify
+from flask import Flask, render_template, request, redirect, jsonify, make_response, render_template_string
 
 import sqlite3
 import bcrypt
@@ -208,17 +208,39 @@ def plane(plane_id):
     connection, cursor = databaseOpen()
     # Receiving the rating given
     if request.method == "POST":
-        # Receiving the value of the rating
-        rating = request.form.get("rating")
-        if rating:
-            rating = int(rating)
-            # Adding the value of the rating and the amount of ratings to the plane in the popular table
-            cursor.execute("""
-                UPDATE popular
-                SET ratings = ratings + ?, totalratings = totalratings + 1
-                WHERE pid = ?
-            """, (rating, plane_id))
-            connection.commit()
+        # Checking if the user has rated the page in the last 24 hours
+        review_cookie = request.cookies.get(f"reviewed_plane_{plane_id}")
+        if review_cookie:
+            return render_template_string("""
+            <script>
+                alert("You have already submitted a review for this item.");
+                window.history.back();  // Go back to the previous page
+            </script>
+            """)
+        else:
+            # Receiving the value of the rating
+            rating = request.form.get("rating")
+            if rating:
+                rating = int(rating)
+                # Adding the value of the rating and the amount of ratings to the plane in the popular table
+                cursor.execute("""
+                    UPDATE popular
+                    SET ratings = ratings + ?, totalratings = totalratings + 1
+                    WHERE pid = ?
+                """, (rating, plane_id))
+                connection.commit()
+                # Inform the user rating was successful
+                response = make_response(render_template_string("""
+                    <script>
+                        alert("Review submitted successfully!");
+                        window.history.back();  // Go back to the previous page
+                    </script>
+                """))
+                # Creating a cookie that'll expires in 24 hours
+                response.set_cookie(f"reviewed_plane_{plane_id}", "true",
+                                    max_age=60*60*24)
+                return response
+    
     # Fetching the plane's information for the planes table
     cursor.execute("SELECT * FROM Plane WHERE id = ?", (plane_id,))
     plane = cursor.fetchone()
@@ -293,16 +315,37 @@ def engine(engine_id):
     # Connecting to the database
     connection, cursor = databaseOpen()
     if request.method == "POST":
-        # Getting the rating given by the user
-        rating = request.form.get("rating")
-        if rating:
-            rating = int(rating)
-            cursor.execute("""
-                UPDATE popular
-                SET ratings = ratings + ?, totalratings = totalratings + 1
-                WHERE eid = ?
-            """, (rating, engine_id))
-            connection.commit()
+        # Checking if the user has rated the page in the last 24 hours
+        review_cookie = request.cookies.get(f"reviewed_engine_{engine_id}")
+        if review_cookie:
+            return render_template_string("""
+            <script>
+                alert("You have already submitted a review for this item.");
+                window.history.back();  // Go back to the previous page
+            </script>
+            """)
+        else:
+            # Getting the rating given by the user
+            rating = request.form.get("rating")
+            if rating:
+                rating = int(rating)
+                cursor.execute("""
+                    UPDATE popular
+                    SET ratings = ratings + ?, totalratings = totalratings + 1
+                    WHERE eid = ?
+                """, (rating, engine_id))
+                connection.commit()
+                # Inform the user rating was successful
+                response = make_response(render_template_string("""
+                    <script>
+                        alert("Review submitted successfully!");
+                        window.history.back();  // Go back to the previous page
+                    </script>
+                """))
+                # Creating a cookie that'll expires in 24 hours
+                response.set_cookie(f"reviewed_engine_{engine_id}", "true",
+                                    max_age=60*60*24)
+                return response
     cursor.execute("SELECT * FROM Engine WHERE id = ?", (engine_id,))
     engine = cursor.fetchone()
     cursor.execute("SELECT opened FROM popular WHERE eid = ?", (engine_id,))
@@ -335,7 +378,16 @@ def engine(engine_id):
 
 @app.route("/create", methods=["GET", "POST"])
 def create():
+    create_cookie = request.cookies.get("created_page")
     if request.method == "POST":
+        # Check if the user has recently created a page
+        if create_cookie:
+            return render_template_string("""
+                <script>
+                    alert("You have already created a page recently. Please wait at least an hour before creating another one.");
+                    window.history.back();  // Go back to the previous page
+                </script>
+            """)
         # Get form data
         plane_engine = request.form.get("PlaneEngine")
         name = request.form.get("name")
@@ -378,8 +430,16 @@ def create():
                                (id[0],))
                 connection.commit()
             connection.close()
-            # Redricting to a page to tell them the pafe was created or back to the create page to try again
-            return render_template("created.html")
+            # Set a cookie to restrict further creation and inform of creation
+            response = make_response(render_template_string("""
+                <script>
+                    alert("Page created successfully!");
+                    window.location.href = "/";  // Redirect to the home page after creation
+                </script>
+            """))
+            # Cookie expires in 1 hour
+            response.set_cookie("created_page", "true", max_age=60*60)
+            return response
         return render_template("create.html")
     else:
         return render_template("create.html")
