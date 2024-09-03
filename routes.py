@@ -101,10 +101,10 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
             """
         elif sort == "mostRatings" or sort == "leastRatings":
             query = f"""
-            SELECT Plane.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Plane
-            LEFT JOIN popular ON Plane.id = popular.pid
-            ORDER BY sort_value {'DESC' if sort == 'mostRatings' else 'ASC'}
-        """
+                SELECT Plane.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Plane
+                LEFT JOIN popular ON Plane.id = popular.pid
+                ORDER BY sort_value {'DESC' if sort == 'mostRatings' else 'ASC'}
+            """
         else:
             query = """
                 SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
@@ -116,7 +116,7 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
             query = f"""
                 SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
                 LEFT JOIN popular ON Engine.id = popular.eid
-                ORDER BY {'Engine.id' if sort == 'new' or sort == "old" else 'Engine.name'} {"COLLATE NOCASE" if "-" in sort else ""} {'DESC' if sort == 'new' or sort == "Z-A" else 'ASC'} 
+                ORDER BY {'Engine.id' if sort == 'new' or sort == "old" else 'Engine.name'} {"COLLATE NOCASE" if "-" in sort else ""} {'DESC' if sort == 'new' or sort == "Z-A" else 'ASC'}
             """
         elif sort == "mostViews" or sort == "leastViews":
             query = f"""
@@ -133,10 +133,10 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
             """
         elif sort == "mostRatings" or sort == "leastRatings":
             query = f"""
-            SELECT Engine.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Engine
-            LEFT JOIN popular ON Engine.id = popular.eid
-            ORDER BY sort_value {'DESC' if sort == 'mostRatings' else 'ASC'}
-        """
+                SELECT Engine.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Engine
+                LEFT JOIN popular ON Engine.id = popular.eid
+                ORDER BY sort_value {'DESC' if sort == 'mostRatings' else 'ASC'}
+            """
         else:
             query = """
                 SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
