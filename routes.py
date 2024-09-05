@@ -17,20 +17,26 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
     if page == "home":
         if sort == "new" or sort == "old":
             query = f"""
-                SELECT id, name, description, picture, 'plane' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+                SELECT id, name, description, picture, 'plane' AS type, id AS sort_value,
+                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
                 LEFT JOIN popular ON Plane.id = popular.pid
                 UNION ALL
-                SELECT id, name, description, picture, 'engine' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+                SELECT id, name, description, picture, 'engine' AS type, id AS sort_value,
+                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
                 LEFT JOIN popular ON Engine.id = popular.eid
                 ORDER BY sort_value {'DESC' if sort == 'new' else 'ASC'}
             """
         elif sort == "mostViews" or sort == "leastViews":
             query = f"""
-                SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type,
+                IFNULL(popular.opened, 0) AS sort_value,
+                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
                 FROM Plane
                 LEFT JOIN popular ON Plane.id = popular.pid
                 UNION ALL
-                SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type,
+                IFNULL(popular.opened, 0) AS sort_value,
+                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
                 FROM Engine
                 LEFT JOIN popular ON Engine.id = popular.eid
                 ORDER BY sort_value {'DESC' if sort == 'mostViews' else 'ASC'}
@@ -50,98 +56,95 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
             """
         elif sort == "bestRatings" or sort == "worstRatings":
             query = f"""
-                SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type,
+                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value,
+                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
                 FROM Plane
                 LEFT JOIN popular ON Plane.id = popular.pid
                 UNION ALL
-                SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type,
+                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value,
+                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
                 FROM Engine
                 LEFT JOIN popular ON Engine.id = popular.eid
                 ORDER BY sort_value {'DESC' if sort == 'bestRatings' else 'ASC'}
             """
         elif sort == "mostRatings" or sort == "leastRatings":
             query = f"""
-                SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type,
+                IFNULL(popular.totalratings, 0) AS sort_value,
+                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
                 FROM Plane
                 LEFT JOIN popular ON Plane.id = popular.pid
                 UNION ALL
-                SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type,
+                IFNULL(popular.totalratings, 0) AS sort_value,
+                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
                 FROM Engine
                 LEFT JOIN popular ON Engine.id = popular.eid
                 ORDER BY sort_value {'DESC' if sort == 'mostRatings' else 'ASC'}
             """
         else:
             query = """
-                SELECT id, name, description, picture, 'plane' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+                SELECT id, name, description, picture, 'plane' AS type, id AS sort_value,
+                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
                 LEFT JOIN popular ON Plane.id = popular.pid
                 UNION ALL
-                SELECT id, name, description, picture, 'engine' AS type, id AS sort_value, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+                SELECT id, name, description, picture, 'engine' AS type, id AS sort_value,
+                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
                 LEFT JOIN popular ON Engine.id = popular.eid
                 ORDER BY sort_value DESC
             """
-    elif page == "planes":
-        if sort == "new" or sort == "old"  or sort == "A-Z" or sort == "Z-A":
-            query = f"""
-                SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
-                LEFT JOIN popular ON Plane.id = popular.pid
-                ORDER BY {'Plane.id' if sort == 'new' or sort == "old" else 'Plane.name'} {"COLLATE NOCASE" if "-" in sort else ""} {'DESC' if sort == 'new' or sort == "Z-A" else 'ASC'} 
-            """
-        elif sort == "mostViews" or sort == "leastViews":
-            query = f"""
-                SELECT Plane.*, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-                FROM Plane
-                LEFT JOIN popular ON Plane.id = popular.pid
-                ORDER BY sort_value {'DESC' if sort == 'mostViews' else 'ASC'}
-            """
-        elif sort == "bestRatings" or sort == "worstRatings":
-            query = f"""
-                SELECT Plane.*, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Plane
-                LEFT JOIN popular ON Plane.id = popular.pid
-                ORDER BY avg_rating {'DESC' if sort == 'bestRatings' else 'ASC'}
-            """
-        elif sort == "mostRatings" or sort == "leastRatings":
-            query = f"""
-                SELECT Plane.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Plane
-                LEFT JOIN popular ON Plane.id = popular.pid
-                ORDER BY sort_value {'DESC' if sort == 'mostRatings' else 'ASC'}
-            """
-        else:
-            query = """
-                SELECT Plane.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
-                LEFT JOIN popular ON Plane.id = popular.pid
-                ORDER BY Plane.id DESC
-            """
-    elif page == "engines":
+    elif page == "planes" or page == "engines":
         if sort == "new" or sort == "old" or sort == "A-Z" or sort == "Z-A":
             query = f"""
-                SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
-                LEFT JOIN popular ON Engine.id = popular.eid
-                ORDER BY {'Engine.id' if sort == 'new' or sort == "old" else 'Engine.name'} {"COLLATE NOCASE" if "-" in sort else ""} {'DESC' if sort == 'new' or sort == "Z-A" else 'ASC'}
+                SELECT {'Plane' if page == "planes" else "Engine"}.*,
+                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM
+                {'Plane' if page == "planes" else "Engine"}
+                LEFT JOIN popular ON
+                {'Plane' if page == "planes" else "Engine"}.id = popular.{'pid' if page == "planes" else "eid"}
+                ORDER BY {f"{'Plane' if page == 'planes' else 'Engine'}.id" if sort == 'new'
+                          or sort == "old" else f"{'Plane' if page == 'planes' else 'Engine'}.name"}
+                {"COLLATE NOCASE" if "-" in sort else ""}
+                {'DESC' if sort == 'new' or sort == "Z-A" else 'ASC'}
             """
         elif sort == "mostViews" or sort == "leastViews":
             query = f"""
-                SELECT Engine.*, IFNULL(popular.opened, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
-                FROM Engine
-                LEFT JOIN popular ON Engine.id = popular.eid
+                SELECT {'Plane' if page == "planes" else "Engine"}.*,
+                IFNULL(popular.opened, 0) AS sort_value,
+                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                FROM {'Plane' if page == "planes" else "Engine"}
+                LEFT JOIN popular ON
+                {'Plane' if page == "planes" else "Engine"}.id = popular.{'pid' if page == "planes" else "eid"}
                 ORDER BY sort_value {'DESC' if sort == 'mostViews' else 'ASC'}
             """
         elif sort == "bestRatings" or sort == "worstRatings":
             query = f"""
-                SELECT Engine.*, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Engine
-                LEFT JOIN popular ON Engine.id = popular.eid
+                SELECT {'Plane' if page == "planes" else "Engine"}.*,
+                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1)
+                AS avg_rating FROM {'Plane' if page == "planes" else "Engine"}
+                LEFT JOIN popular ON
+                {'Plane' if page == "planes" else "Engine"}.id = popular.{'pid' if page == "planes" else "eid"}
                 ORDER BY avg_rating {'DESC' if sort == 'bestRatings' else 'ASC'}
             """
         elif sort == "mostRatings" or sort == "leastRatings":
             query = f"""
-                SELECT Engine.*, IFNULL(popular.totalratings, 0) AS sort_value, IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM Engine
-                LEFT JOIN popular ON Engine.id = popular.eid
+                SELECT {'Plane' if page == "planes" else "Engine"}.*,
+                IFNULL(popular.totalratings, 0) AS sort_value,
+                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM
+                {'Plane' if page == "planes" else "Engine"}
+                LEFT JOIN popular ON
+                {'Plane' if page == "planes" else "Engine"}.id = popular.{'pid' if page == "planes" else "eid"}
                 ORDER BY sort_value {'DESC' if sort == 'mostRatings' else 'ASC'}
             """
         else:
-            query = """
-                SELECT Engine.*, IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
-                LEFT JOIN popular ON Engine.id = popular.eid
-                ORDER BY Engine.id DESC
+            query = f"""
+                SELECT {'Plane' if page == "planes" else "Engine"}.*,
+                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM
+                {'Plane' if page == "planes" else "Engine"}
+                LEFT JOIN popular ON
+                {'Plane' if page == "planes" else "Engine"}.id = popular.{'pid' if page == "planes" else "eid"}
+                ORDER BY {'Plane' if page == "planes" else "Engine"}.id DESC
             """
     return query
 
@@ -184,7 +187,8 @@ def planes():
     cursor.execute(query)
     planes = cursor.fetchall()
     connection.close()
-    # Creating nested lists inside the one list with the plane ID, name, description, picture, and avg rating
+    # Creating nested lists inside the one list with the plane ID, name,
+    # description, picture, and avg rating
     planelist = []
     index = -1
     for plane in planes:
@@ -222,7 +226,8 @@ def plane(plane_id):
             rating = request.form.get("rating")
             if rating:
                 rating = int(rating)
-                # Adding the value of the rating and the amount of ratings to the plane in the popular table
+                # Adding the value of the rating and the amount of ratings to
+                # the plane in the popular table
                 cursor.execute("""
                     UPDATE popular
                     SET ratings = ratings + ?, totalratings = totalratings + 1
@@ -240,7 +245,7 @@ def plane(plane_id):
                 response.set_cookie(f"reviewed_plane_{plane_id}", "true",
                                     max_age=60*60*24)
                 return response
-    
+
     # Fetching the plane's information for the planes table
     cursor.execute("SELECT * FROM Plane WHERE id = ?", (plane_id,))
     plane = cursor.fetchone()
@@ -249,12 +254,14 @@ def plane(plane_id):
         # Fetching how many times the plane's page has been opened
         cursor.execute("SELECT opened FROM popular WHERE pid = ?", (plane_id,))
         opened = cursor.fetchone()
-        # Checking if the plane exists in the popular table and increasing the amount of times the page has been opened
+        # Checking if the plane exists in the popular table and increasing the
+        # amount of times the page has been opened
         if opened:
             opened = opened[0] + 1
             cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;",
                            (opened, plane_id))
-        # If the plane does not exist in the popular table add the plane into the popular table with its 1 view (times opened)
+        # If the plane does not exist in the popular table add the plane into
+        # the popular table with its 1 view (times opened)
         else:
             cursor.execute("""
                 INSERT INTO popular (pid, opened)
@@ -290,7 +297,8 @@ def engines():
     cursor.execute(query)
     engines = cursor.fetchall()
     connection.close()
-    # Creating nested lists inside the one list with the engine ID, name, description, picture, and avg rating
+    # Creating nested lists inside the one list with the engine ID, name,
+    # description, picture, and avg rating
     enginelist = []
     index = -1
     for engine in engines:
@@ -384,7 +392,8 @@ def create():
         if create_cookie:
             return render_template_string("""
                 <script>
-                    alert("You have already created a page recently. Please wait at least an hour before creating another one.");
+                    alert("You have already created a page recently.
+                    Please wait at least an hour before creating another one.");
                     window.history.back();  // Go back to the previous page
                 </script>
             """)
@@ -489,7 +498,8 @@ def edit(item_type, item_id):
             connection.close()
             return render_template("edit.html", item_type=item_type,
                                    item_id=item_id, item=item, error=error)
-    # Fetching name, description, and picture from the database to show the user what is already there
+    # Fetching name, description, and picture from the database to show the
+    # user what is already there
     if item_type == "plane":
         cursor.execute("""SELECT name, description,
                        picture FROM Plane WHERE id = ?""", (item_id,))
@@ -509,7 +519,8 @@ def search():
     query = request.args.get("query", "")
     if query:
         connection, cursor = databaseOpen()
-        # Using the user's input to search the plane's and engine's names and description for similarities
+        # Using the user's input to search the plane's and engine's names and
+        # description for similarities
         search_query = """
             SELECT id, name, 'plane' AS type FROM Plane WHERE name LIKE ? OR description LIKE ?
             UNION ALL
