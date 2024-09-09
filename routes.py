@@ -286,7 +286,7 @@ def plane(plane_id):
                                planeimg=planeimg, avgrating=avg_rating)
     # If the plane does not exist return a 404 error
     else:
-        return "Plane not found", 404
+        return render_template("404.html"), 404
 
 
 @app.route("/engines", methods=["GET"])
