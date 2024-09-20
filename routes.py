@@ -7,13 +7,15 @@ import base64
 app = Flask(__name__)
 
 
-def databaseOpen():  # Connecting to the database for SQL querys
+def databaseOpen():
     connection = sqlite3.connect('planeWIKIDB.db')
     cursor = connection.cursor()
     return connection, cursor
 
 
-def databaseSelect(page, sort):  # Returns the desired query for the situation
+# This function is finding the desired query based off which page the user is
+# on and the given search option
+def databaseSelect(page, sort):
     query = str()
     if page == "home":
         if sort == "new" or sort == "old":
@@ -210,8 +212,6 @@ def home():
         index += 1
         list_of_pages[index][3] = f"""data:image/png;base64,
                                   {list_of_pages[index][3]}"""
-    # Rendering the home.html file and passing the required variables for
-    # Jinja template
     return render_template("home.html", pages=list_of_pages,
                            sort_option=sort_option)
 
@@ -283,22 +283,18 @@ def plane(plane_id):
                                     max_age=60*60*24)
                 return response
 
-    # Fetching the plane's information for the planes table
     cursor.execute("SELECT * FROM Plane WHERE id = ?", (plane_id,))
     plane = cursor.fetchone()
-    # Checking that the plane does in fact exist
     if plane:
-        # Fetching how many times the plane's page has been opened
         cursor.execute("SELECT opened FROM popular WHERE pid = ?", (plane_id,))
         opened = cursor.fetchone()
         # Checking if the plane exists in the popular table and increasing the
-        # amount of times the page has been opened
+        # amount of times the page has been opened otherwise adding it ot the
+        # popular table
         if opened:
             opened = opened[0] + 1
             cursor.execute("UPDATE popular SET opened = ? WHERE pid = ?;",
                            (opened, plane_id))
-        # If the plane does not exist in the popular table add the plane into
-        # the popular table with its 1 view (times opened)
         else:
             cursor.execute("""
                 INSERT INTO popular (pid, opened)
@@ -356,7 +352,6 @@ def engines():
 
 @app.route("/engine/<string:engine_id>", methods=["GET", "POST"])
 def engine(engine_id):
-    # Connecting to the database
     connection, cursor = databaseOpen()
     if request.method == "POST":
         # Checking if the user has rated the page in the last 24 hours
@@ -369,7 +364,6 @@ def engine(engine_id):
             </script>
             """)
         else:
-            # Getting the rating given by the user
             rating = request.form.get("rating")
             if rating:
                 rating = int(rating)
@@ -427,13 +421,13 @@ def create():
         # Check if the user has recently created a page
         if create_cookie:
             print("User has made a page in last hour")
-            return make_response(render_template_string("""
+            return render_template_string("""
                 <script>
-                    alert("You have already created a page recently.
-                    Please wait at least an hour before creating another one.");
+                    alert("You have already created a page recently." +
+                    " Please wait at least an hour before creating another one.");
                     window.history.back();
                 </script>
-            """))
+            """)
 
         # Get form data
         plane_engine = request.form.get("PlaneEngine")
@@ -455,7 +449,6 @@ def create():
             picture_blob = None
         print(picture_blob)
 
-        # Check that the required fields are filled
         if name and description and password and picture_blob:
             # Hash the password
             hashed_password = bcrypt.hashpw(password.encode('utf-8'),
@@ -518,12 +511,9 @@ def edit(item_type, item_id):
     connection, cursor = databaseOpen()
 
     if request.method == "POST":
-        # Fetch the inputs
         name = request.form["name"]
         description = request.form["description"]
         password = request.form["password"]
-
-        # Get the uploaded file from the form
         picture_file = request.files.get("picture")
 
         if picture_file and (picture_file.filename.endswith('.png')
@@ -636,5 +626,4 @@ def not_found(eror):
 
 
 if __name__ == "__main__":
-    # Live update code when building a website
     app.run(debug=True)

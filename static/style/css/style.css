@@ -79,7 +79,7 @@ nav ul a {
 
 .nav-bar-item {
     margin: 0px;
-    color: white;
+    color: whitesmoke;
     text-decoration: none;
     align-items: center;
 }
@@ -138,6 +138,10 @@ nav ul a {
     grid-template-columns: 2fr 1fr;
     padding-left: 15px;
     padding-right: 15px;
+}
+
+.pe-header div h1 {
+    color: whitesmoke;
 }
 
 .pe-header form {
