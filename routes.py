@@ -1,7 +1,10 @@
 from flask import Flask, render_template, request, redirect, jsonify, make_response, render_template_string
+from PIL import Image
 
 import sqlite3
 import bcrypt
+import io
+import base64
 
 app = Flask(__name__)
 
@@ -102,7 +105,8 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
                 IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM
                 {'Plane' if page == "planes" else "Engine"}
                 LEFT JOIN popular ON
-                {'Plane' if page == "planes" else "Engine"}.id = popular.{'pid' if page == "planes" else "eid"}
+                {'Plane' if page == "planes" else "Engine"}.id =
+                popular.{'pid' if page == "planes" else "eid"}
                 ORDER BY {f"{'Plane' if page == 'planes' else 'Engine'}.id" if sort == 'new'
                           or sort == "old" else f"{'Plane' if page == 'planes' else 'Engine'}.name"}
                 {"COLLATE NOCASE" if "-" in sort else ""}
@@ -115,7 +119,8 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
                 IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
                 FROM {'Plane' if page == "planes" else "Engine"}
                 LEFT JOIN popular ON
-                {'Plane' if page == "planes" else "Engine"}.id = popular.{'pid' if page == "planes" else "eid"}
+                {'Plane' if page == "planes" else "Engine"}.id =
+                popular.{'pid' if page == "planes" else "eid"}
                 ORDER BY sort_value {'DESC' if sort == 'mostViews' else 'ASC'}
             """
         elif sort == "bestRatings" or sort == "worstRatings":
@@ -124,7 +129,8 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
                 IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1)
                 AS avg_rating FROM {'Plane' if page == "planes" else "Engine"}
                 LEFT JOIN popular ON
-                {'Plane' if page == "planes" else "Engine"}.id = popular.{'pid' if page == "planes" else "eid"}
+                {'Plane' if page == "planes" else "Engine"}.id =
+                popular.{'pid' if page == "planes" else "eid"}
                 ORDER BY avg_rating {'DESC' if sort == 'bestRatings' else 'ASC'}
             """
         elif sort == "mostRatings" or sort == "leastRatings":
@@ -134,7 +140,8 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
                 IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM
                 {'Plane' if page == "planes" else "Engine"}
                 LEFT JOIN popular ON
-                {'Plane' if page == "planes" else "Engine"}.id = popular.{'pid' if page == "planes" else "eid"}
+                {'Plane' if page == "planes" else "Engine"}.id =
+                popular.{'pid' if page == "planes" else "eid"}
                 ORDER BY sort_value {'DESC' if sort == 'mostRatings' else 'ASC'}
             """
         else:
@@ -143,7 +150,8 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
                 IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM
                 {'Plane' if page == "planes" else "Engine"}
                 LEFT JOIN popular ON
-                {'Plane' if page == "planes" else "Engine"}.id = popular.{'pid' if page == "planes" else "eid"}
+                {'Plane' if page == "planes" else "Engine"}.id =
+                popular.{'pid' if page == "planes" else "eid"}
                 ORDER BY {'Plane' if page == "planes" else "Engine"}.id DESC
             """
     return query
@@ -151,7 +159,8 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
 
 @app.route("/", methods=["GET"])
 def home():
-    # Fetching the desired sort method to fetch the planes and engines in the corresponding order
+    # Fetching the desired sort method to fetch the planes and engines in the
+    # corresponding order
     sort_option = request.args.get("Sort", "new")
     connection, cursor = databaseOpen()
     query = databaseSelect('home', sort_option)
@@ -162,7 +171,6 @@ def home():
     index = -1
     for page in pages:
         index += 1
-        print([page[0], page[1], page[2], page[4], page[-1]])
         if index < 10:
             list_of_pages.append([page[0], page[1], page[2], page[3], page[4],
                                   page[-1]])
@@ -174,7 +182,8 @@ def home():
         index += 1
         list_of_pages[index][3] = f"""data:image/png;base64,
                                   {list_of_pages[index][3]}"""
-    # Rendering the home.html file and passing the required variables for Jinja template
+    # Rendering the home.html file and passing the required variables for
+    # Jinja template
     return render_template("home.html", pages=list_of_pages,
                            sort_option=sort_option)
 
@@ -192,7 +201,6 @@ def planes():
     planelist = []
     index = -1
     for plane in planes:
-        print(plane)
         index += 1
         if index < 10:
             planelist.append([plane[0], plane[1], plane[2], plane[3], plane[-1]])
@@ -302,7 +310,6 @@ def engines():
     enginelist = []
     index = -1
     for engine in engines:
-        print(engine)
         index += 1
         if index < 10:
             enginelist.append([engine[0], engine[1], engine[2],
@@ -390,55 +397,61 @@ def create():
     if request.method == "POST":
         # Check if the user has recently created a page
         if create_cookie:
-            return render_template_string("""
+            print("User has made a page in last hour")
+            return make_response(render_template_string("""
                 <script>
                     alert("You have already created a page recently.
                     Please wait at least an hour before creating another one.");
-                    window.history.back();  // Go back to the previous page
+                    window.history.back();
                 </script>
-            """)
+            """))
+
         # Get form data
         plane_engine = request.form.get("PlaneEngine")
         name = request.form.get("name")
         description = request.form.get("description")
-        picture = request.form.get("picture")
         password = request.form.get("password")
-        # Checking that the required fields are filled
-        if name and description and password:
+        picture_file = request.files.get("picture")
+        print("Files recieved:")
+        print(plane_engine, name, description, password, picture_file)
+        print(request.files)
+
+        if picture_file and picture_file.filename != '':
+            print("There's a picture")
+            # Read the file content and convert to base64
+            file_data = picture_file.read()
+            picture_blob = base64.b64encode(file_data).decode('utf-8')
+        else:
+            picture_blob = None  # Handle case where no file or invalid file type was uploaded
+        print(picture_blob)
+
+        # Check that the required fields are filled
+        if name and description and password and picture_blob:
             # Hash the password
-            hashed_password = bcrypt.hashpw(password.encode('utf-8'),
-                                            bcrypt.gensalt())
-            # Insert new data into the plane/engine table then the popular table
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+            # Insert new data into the plane/engine table, then the popular table
             connection, cursor = databaseOpen()
             if plane_engine == "plane":
-                cursor.execute("""INSERT INTO plane (name, description,
-                               picture, password) VALUES (?, ?, ?, ?)""",
-                               (name, description, picture, hashed_password))
+                cursor.execute("""INSERT INTO plane (name, description, picture, password) VALUES (?, ?, ?, ?)""",
+                               (name, description, picture_blob, hashed_password))
                 connection.commit()
-                cursor.execute("""SELECT id FROM plane WHERE name = ? AND
-                               description = ? AND picture = ?
-                               AND password = ?""",
-                               (name, description, picture, hashed_password))
+                cursor.execute("""SELECT id FROM plane WHERE name = ? AND description = ? AND picture = ? AND password = ?""",
+                               (name, description, picture_blob, hashed_password))
                 id = cursor.fetchone()
-                cursor.execute("""INSERT INTO popular (pid, opened, ratings,
-                               totalratings) VALUES (?, 0, 0, 0)""",
-                               (id[0],))
+                cursor.execute("""INSERT INTO popular (pid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)""", (id[0],))
                 connection.commit()
             elif plane_engine == "engine":
-                cursor.execute("""INSERT INTO engine (name, description,
-                               picture, password) VALUES (?, ?, ?, ?)""",
-                               (name, description, picture, hashed_password))
+                cursor.execute("""INSERT INTO engine (name, description, picture, password) VALUES (?, ?, ?, ?)""",
+                               (name, description, picture_blob, hashed_password))
                 connection.commit()
-                cursor.execute("""SELECT id FROM engine WHERE name = ?
-                               AND description = ? AND picture = ?
-                               AND password = ?""",
-                               (name, description, picture, hashed_password))
+                cursor.execute("""SELECT id FROM engine WHERE name = ? AND description = ? AND picture = ? AND password = ?""",
+                               (name, description, picture_blob, hashed_password))
                 id = cursor.fetchone()
-                cursor.execute("""INSERT INTO popular (eid, opened, ratings,
-                               totalratings) VALUES (?, 0, 0, 0)""",
-                               (id[0],))
+                cursor.execute("""INSERT INTO popular (eid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)""", (id[0],))
                 connection.commit()
             connection.close()
+
             # Set a cookie to restrict further creation and inform of creation
             response = make_response(render_template_string("""
                 <script>
@@ -449,9 +462,9 @@ def create():
             # Cookie expires in 1 hour
             response.set_cookie("created_page", "true", max_age=60*60)
             return response
+
         return render_template("create.html")
-    else:
-        return render_template("create.html")
+    return render_template("create.html")
 
 
 @app.route("/edit/<string:item_type>/<int:item_id>", methods=["GET", "POST"])

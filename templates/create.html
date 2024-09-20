@@ -4,7 +4,7 @@
 
 <div class="pe-container">
     <br>
-    <form method="POST" action="/create" class="">
+    <form method="POST" action="/create" enctype="multipart/form-data">
         <div class="creation-section">
             <label for="PlaneEngine" class="label-heading">Plane or Engine</label>
             <div class="creation-input">
@@ -27,9 +27,9 @@
             </div>
         </div>
         <div class="creation-section">
-            <label for="picture" class="label-heading">Picture (must be a blob value, use an online convertor)</label>
+            <label for="picture" class="label-heading">Picture (PNG or JPG)</label>
             <div class="creation-input">
-                <textarea maxlength="10000" name="picture" id="picture"></textarea>
+                <input type="file" accept=".png, .jpg, .jpeg" name="picture" id="picture">
             </div>
         </div>
         <div class="creation-section">

@@ -157,6 +157,7 @@ nav ul a {
     width: 100%;
     margin-top: 0px;
     float: left;
+    max-height: 25vh;
 }
 
 .pe-info p {
