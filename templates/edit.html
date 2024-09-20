@@ -4,7 +4,7 @@
 
 <div class="pe-container">
     <br>
-    <form method="POST" action="/edit/{{ item_type }}/{{ item_id }}">
+    <form method="POST" action="/edit/{{ item_type }}/{{ item_id }}" enctype="multipart/form-data">
         <div class="creation-section">
             <label for="PlaneEngine" class="label-heading">Plane or Engine</label>
             <div class="creation-input">
@@ -27,9 +27,9 @@
             </div>
         </div>
         <div class="creation-section">
-            <label for="picture" class="label-heading">Picture</label>
+            <label for="picture" class="label-heading">Picture (PNG or JPG)</label>
             <div class="creation-input">
-                <textarea maxlength="4000000" minlength="1" id="picture" name="picture">{{ item[2] }}</textarea>
+                <input type="file" accept=".png, .jpg, .jpeg" name="picture" id="picture">
             </div>
         </div>
         <div class="creation-section">

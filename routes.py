@@ -1,9 +1,7 @@
 from flask import Flask, render_template, request, redirect, jsonify, make_response, render_template_string
-from PIL import Image
 
 import sqlite3
 import bcrypt
-import io
 import base64
 
 app = Flask(__name__)
@@ -20,81 +18,107 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
     if page == "home":
         if sort == "new" or sort == "old":
             query = f"""
-                SELECT id, name, description, picture, 'plane' AS type, id AS sort_value,
-                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+                SELECT id, name, description, picture, 'plane' AS type,
+                id AS sort_value,
+                IFNULL(ratings, 0) * 1.0 /
+                IFNULL(totalratings, 1) AS avg_rating FROM Plane
                 LEFT JOIN popular ON Plane.id = popular.pid
                 UNION ALL
-                SELECT id, name, description, picture, 'engine' AS type, id AS sort_value,
-                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+                SELECT id, name, description, picture, 'engine' AS type,
+                id AS sort_value,
+                IFNULL(ratings, 0) * 1.0 /
+                IFNULL(totalratings, 1) AS avg_rating FROM Engine
                 LEFT JOIN popular ON Engine.id = popular.eid
                 ORDER BY sort_value {'DESC' if sort == 'new' else 'ASC'}
             """
         elif sort == "mostViews" or sort == "leastViews":
             query = f"""
-                SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type,
+                SELECT Plane.id, Plane.name, Plane.description, Plane.picture,
+                'plane' AS type,
                 IFNULL(popular.opened, 0) AS sort_value,
-                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                IFNULL(popular.ratings, 0) * 1.0 /
+                IFNULL(popular.totalratings, 1) AS avg_rating
                 FROM Plane
                 LEFT JOIN popular ON Plane.id = popular.pid
                 UNION ALL
-                SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type,
+                SELECT Engine.id, Engine.name, Engine.description,
+                Engine.picture, 'engine' AS type,
                 IFNULL(popular.opened, 0) AS sort_value,
-                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                IFNULL(popular.ratings, 0) * 1.0 /
+                IFNULL(popular.totalratings, 1) AS avg_rating
                 FROM Engine
                 LEFT JOIN popular ON Engine.id = popular.eid
                 ORDER BY sort_value {'DESC' if sort == 'mostViews' else 'ASC'}
             """
         elif sort == "A-Z" or sort == "Z-A":
             query = f"""
-                SELECT id, name, description, picture, 'plane' AS type, name AS sort_value,
-                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating
+                SELECT id, name, description, picture, 'plane' AS type,
+                name AS sort_value,
+                IFNULL(ratings, 0) * 1.0 /
+                IFNULL(totalratings, 1) AS avg_rating
                 FROM Plane
                 LEFT JOIN popular ON Plane.id = popular.pid
                 UNION ALL
-                SELECT id, name, description, picture, 'engine' AS type, name AS sort_value,
-                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating
+                SELECT id, name, description, picture, 'engine' AS type,
+                name AS sort_value,
+                IFNULL(ratings, 0) * 1.0 /
+                IFNULL(totalratings, 1) AS avg_rating
                 FROM Engine
                 LEFT JOIN popular ON Engine.id = popular.eid
                 ORDER BY sort_value COLLATE NOCASE {'DESC' if sort == 'Z-A' else 'ASC'}
             """
         elif sort == "bestRatings" or sort == "worstRatings":
             query = f"""
-                SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type,
-                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value,
-                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                SELECT Plane.id, Plane.name, Plane.description, Plane.picture,
+                'plane' AS type,
+                IFNULL(popular.ratings, 0) * 1.0 /
+                IFNULL(popular.totalratings, 1) AS sort_value,
+                IFNULL(popular.ratings, 0) * 1.0 /
+                IFNULL(popular.totalratings, 1) AS avg_rating
                 FROM Plane
                 LEFT JOIN popular ON Plane.id = popular.pid
                 UNION ALL
-                SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type,
-                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS sort_value,
-                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                SELECT Engine.id, Engine.name, Engine.description,
+                Engine.picture, 'engine' AS type,
+                IFNULL(popular.ratings, 0) * 1.0 /
+                IFNULL(popular.totalratings, 1) AS sort_value,
+                IFNULL(popular.ratings, 0) * 1.0 /
+                IFNULL(popular.totalratings, 1) AS avg_rating
                 FROM Engine
                 LEFT JOIN popular ON Engine.id = popular.eid
                 ORDER BY sort_value {'DESC' if sort == 'bestRatings' else 'ASC'}
             """
         elif sort == "mostRatings" or sort == "leastRatings":
             query = f"""
-                SELECT Plane.id, Plane.name, Plane.description, Plane.picture, 'plane' AS type,
+                SELECT Plane.id, Plane.name, Plane.description, Plane.picture,
+                'plane' AS type,
                 IFNULL(popular.totalratings, 0) AS sort_value,
-                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                IFNULL(popular.ratings, 0) * 1.0 /
+                IFNULL(popular.totalratings, 1) AS avg_rating
                 FROM Plane
                 LEFT JOIN popular ON Plane.id = popular.pid
                 UNION ALL
-                SELECT Engine.id, Engine.name, Engine.description, Engine.picture, 'engine' AS type,
+                SELECT Engine.id, Engine.name, Engine.description,
+                Engine.picture, 'engine' AS type,
                 IFNULL(popular.totalratings, 0) AS sort_value,
-                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                IFNULL(popular.ratings, 0) * 1.0 /
+                IFNULL(popular.totalratings, 1) AS avg_rating
                 FROM Engine
                 LEFT JOIN popular ON Engine.id = popular.eid
                 ORDER BY sort_value {'DESC' if sort == 'mostRatings' else 'ASC'}
             """
         else:
             query = """
-                SELECT id, name, description, picture, 'plane' AS type, id AS sort_value,
-                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Plane
+                SELECT id, name, description, picture, 'plane' AS type,
+                id AS sort_value,
+                IFNULL(ratings, 0) * 1.0 /
+                IFNULL(totalratings, 1) AS avg_rating FROM Plane
                 LEFT JOIN popular ON Plane.id = popular.pid
                 UNION ALL
-                SELECT id, name, description, picture, 'engine' AS type, id AS sort_value,
-                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM Engine
+                SELECT id, name, description, picture, 'engine' AS type,
+                id AS sort_value,
+                IFNULL(ratings, 0) * 1.0 /
+                IFNULL(totalratings, 1) AS avg_rating FROM Engine
                 LEFT JOIN popular ON Engine.id = popular.eid
                 ORDER BY sort_value DESC
             """
@@ -108,7 +132,7 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
                 {'Plane' if page == "planes" else "Engine"}.id =
                 popular.{'pid' if page == "planes" else "eid"}
                 ORDER BY {f"{'Plane' if page == 'planes' else 'Engine'}.id" if sort == 'new'
-                          or sort == "old" else f"{'Plane' if page == 'planes' else 'Engine'}.name"}
+                or sort == "old" else f"{'Plane' if page == 'planes' else 'Engine'}.name"}
                 {"COLLATE NOCASE" if "-" in sort else ""}
                 {'DESC' if sort == 'new' or sort == "Z-A" else 'ASC'}
             """
@@ -116,7 +140,8 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
             query = f"""
                 SELECT {'Plane' if page == "planes" else "Engine"}.*,
                 IFNULL(popular.opened, 0) AS sort_value,
-                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating
+                IFNULL(popular.ratings, 0) * 1.0 /
+                IFNULL(popular.totalratings, 1) AS avg_rating
                 FROM {'Plane' if page == "planes" else "Engine"}
                 LEFT JOIN popular ON
                 {'Plane' if page == "planes" else "Engine"}.id =
@@ -126,7 +151,8 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
         elif sort == "bestRatings" or sort == "worstRatings":
             query = f"""
                 SELECT {'Plane' if page == "planes" else "Engine"}.*,
-                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1)
+                IFNULL(popular.ratings, 0) * 1.0 /
+                IFNULL(popular.totalratings, 1)
                 AS avg_rating FROM {'Plane' if page == "planes" else "Engine"}
                 LEFT JOIN popular ON
                 {'Plane' if page == "planes" else "Engine"}.id =
@@ -137,7 +163,8 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
             query = f"""
                 SELECT {'Plane' if page == "planes" else "Engine"}.*,
                 IFNULL(popular.totalratings, 0) AS sort_value,
-                IFNULL(popular.ratings, 0) * 1.0 / IFNULL(popular.totalratings, 1) AS avg_rating FROM
+                IFNULL(popular.ratings, 0) * 1.0 /
+                IFNULL(popular.totalratings, 1) AS avg_rating FROM
                 {'Plane' if page == "planes" else "Engine"}
                 LEFT JOIN popular ON
                 {'Plane' if page == "planes" else "Engine"}.id =
@@ -147,7 +174,8 @@ def databaseSelect(page, sort):  # Returns the desired query for the situation
         else:
             query = f"""
                 SELECT {'Plane' if page == "planes" else "Engine"}.*,
-                IFNULL(ratings, 0) * 1.0 / IFNULL(totalratings, 1) AS avg_rating FROM
+                IFNULL(ratings, 0) * 1.0 /
+                IFNULL(totalratings, 1) AS avg_rating FROM
                 {'Plane' if page == "planes" else "Engine"}
                 LEFT JOIN popular ON
                 {'Plane' if page == "planes" else "Engine"}.id =
@@ -203,7 +231,8 @@ def planes():
     for plane in planes:
         index += 1
         if index < 10:
-            planelist.append([plane[0], plane[1], plane[2], plane[3], plane[-1]])
+            planelist.append([plane[0], plane[1], plane[2], plane[3],
+                              plane[-1]])
         else:
             break
     # Turning the images into something that can be processes by html
@@ -421,34 +450,51 @@ def create():
             # Read the file content and convert to base64
             file_data = picture_file.read()
             picture_blob = base64.b64encode(file_data).decode('utf-8')
+        # Handle case where no file or invalid file type was uploaded
         else:
-            picture_blob = None  # Handle case where no file or invalid file type was uploaded
+            picture_blob = None
         print(picture_blob)
 
         # Check that the required fields are filled
         if name and description and password and picture_blob:
             # Hash the password
-            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'),
+                                            bcrypt.gensalt())
 
-            # Insert new data into the plane/engine table, then the popular table
+            # Insert new data into the plane/engine table, then the popular
+            # table
             connection, cursor = databaseOpen()
             if plane_engine == "plane":
-                cursor.execute("""INSERT INTO plane (name, description, picture, password) VALUES (?, ?, ?, ?)""",
-                               (name, description, picture_blob, hashed_password))
+                cursor.execute("""INSERT INTO plane (name, description,
+                                  picture, password) VALUES (?, ?, ?, ?)""",
+                               (name, description, picture_blob,
+                                hashed_password))
                 connection.commit()
-                cursor.execute("""SELECT id FROM plane WHERE name = ? AND description = ? AND picture = ? AND password = ?""",
-                               (name, description, picture_blob, hashed_password))
+                cursor.execute("""SELECT id FROM plane WHERE name = ?
+                                  AND description = ? AND picture = ?
+                                  AND password = ?""",
+                               (name, description, picture_blob,
+                                hashed_password))
                 id = cursor.fetchone()
-                cursor.execute("""INSERT INTO popular (pid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)""", (id[0],))
+                cursor.execute("""INSERT INTO popular (pid, opened, ratings,
+                                  totalratings) VALUES (?, 0, 0, 0)""",
+                               (id[0],))
                 connection.commit()
             elif plane_engine == "engine":
-                cursor.execute("""INSERT INTO engine (name, description, picture, password) VALUES (?, ?, ?, ?)""",
-                               (name, description, picture_blob, hashed_password))
+                cursor.execute("""INSERT INTO engine (name, description,
+                                  picture, password) VALUES (?, ?, ?, ?)""",
+                               (name, description, picture_blob,
+                                hashed_password))
                 connection.commit()
-                cursor.execute("""SELECT id FROM engine WHERE name = ? AND description = ? AND picture = ? AND password = ?""",
-                               (name, description, picture_blob, hashed_password))
+                cursor.execute("""SELECT id FROM engine WHERE name = ?
+                                  AND description = ? AND picture = ?
+                                  AND password = ?""",
+                               (name, description, picture_blob,
+                                hashed_password))
                 id = cursor.fetchone()
-                cursor.execute("""INSERT INTO popular (eid, opened, ratings, totalratings) VALUES (?, 0, 0, 0)""", (id[0],))
+                cursor.execute("""INSERT INTO popular (eid, opened, ratings,
+                                  totalratings) VALUES (?, 0, 0, 0)""",
+                               (id[0],))
                 connection.commit()
             connection.close()
 
@@ -456,7 +502,7 @@ def create():
             response = make_response(render_template_string("""
                 <script>
                     alert("Page created successfully!");
-                    window.location.href = "/";  // Redirect to the home page after creation
+                    window.location.href = "/";
                 </script>
             """))
             # Cookie expires in 1 hour
@@ -470,12 +516,32 @@ def create():
 @app.route("/edit/<string:item_type>/<int:item_id>", methods=["GET", "POST"])
 def edit(item_type, item_id):
     connection, cursor = databaseOpen()
+
     if request.method == "POST":
         # Fetch the inputs
         name = request.form["name"]
         description = request.form["description"]
-        picture = request.form["picture"]
-        entered_password = request.form["password"]
+        password = request.form["password"]
+
+        # Get the uploaded file from the form
+        picture_file = request.files.get("picture")
+
+        if picture_file and (picture_file.filename.endswith('.png')
+                             or picture_file.filename.endswith('.jpg')
+                             or picture_file.filename.endswith('.jpeg')):
+            # Read the file content and convert to base64
+            file_data = picture_file.read()
+            picture_blob = base64.b64encode(file_data).decode('utf-8')
+        else:
+            # If no new file is uploaded, keep the existing picture
+            if item_type == "plane":
+                cursor.execute("SELECT picture FROM Plane WHERE id = ?",
+                               (item_id,))
+            elif item_type == "engine":
+                cursor.execute("SELECT picture FROM Engine WHERE id = ?",
+                               (item_id,))
+            picture_blob = cursor.fetchone()[0]
+
         # Fetch the current password hash from the database
         if item_type == "plane":
             cursor.execute("SELECT password FROM Plane WHERE id = ?",
@@ -485,46 +551,57 @@ def edit(item_type, item_id):
                            (item_id,))
 
         current_password_hash = cursor.fetchone()[0]
-        # Checking if the password is correct before updating the data
-        if bcrypt.checkpw(entered_password.encode('utf-8'),
-                          current_password_hash):
-            hashed_password = bcrypt.hashpw(entered_password.encode('utf-8'),
+
+        # Check if the password is correct before updating the data
+        if bcrypt.checkpw(password.encode('utf-8'), current_password_hash):
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'),
                                             bcrypt.gensalt())
+
             if item_type == "plane":
                 cursor.execute("""
                     UPDATE Plane
                     SET name = ?, description = ?, picture = ?, password = ?
                     WHERE id = ?
-                """, (name, description, picture, hashed_password, item_id))
+                """, (name, description, picture_blob, hashed_password,
+                      item_id))
             elif item_type == "engine":
                 cursor.execute("""
                     UPDATE Engine
                     SET name = ?, description = ?, picture = ?, password = ?
                     WHERE id = ?
-                """, (name, description, picture, hashed_password, item_id))
+                """, (name, description, picture_blob, hashed_password,
+                      item_id))
+
             connection.commit()
             connection.close()
-            return redirect(f"/{item_type}/{item_id}")  # Redricts to the page
+            return redirect(f"/{item_type}/{item_id}")
+
         else:
             error = "Incorrect password. Please try again."
-            item = (name, description)
+            item = (name, description, picture_blob)
             connection.close()
             return render_template("edit.html", item_type=item_type,
                                    item_id=item_id, item=item, error=error)
+
     # Fetching name, description, and picture from the database to show the
     # user what is already there
     if item_type == "plane":
         cursor.execute("""SELECT name, description,
-                       picture FROM Plane WHERE id = ?""", (item_id,))
+                          picture FROM Plane WHERE id = ?""",
+                       (item_id,))
     elif item_type == "engine":
-        cursor.execute("""SELECT name, description, picture
-                       FROM Engine WHERE id = ?""", (item_id,))
+        cursor.execute("""SELECT name, description,
+                          picture FROM Engine WHERE id = ?""",
+                       (item_id,))
+
     item = cursor.fetchone()
     connection.close()
+
     if not item:
         return "Item not found", 404
-    return render_template("edit.html", item_type=item_type,
-                           item_id=item_id, item=item)
+
+    return render_template("edit.html", item_type=item_type, item_id=item_id,
+                           item=item)
 
 
 @app.route("/search")
@@ -535,9 +612,11 @@ def search():
         # Using the user's input to search the plane's and engine's names and
         # description for similarities
         search_query = """
-            SELECT id, name, 'plane' AS type FROM Plane WHERE name LIKE ? OR description LIKE ?
+            SELECT id, name, 'plane' AS type FROM Plane WHERE name LIKE ?
+            OR description LIKE ?
             UNION ALL
-            SELECT id, name, 'engine' AS type FROM Engine WHERE name LIKE ? OR description LIKE ?
+            SELECT id, name, 'engine' AS type FROM Engine WHERE name LIKE ?
+            OR description LIKE ?
             ORDER BY name COLLATE NOCASE
         """
         search_term = f"%{query}%"
