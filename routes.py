@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, redirect, jsonify, make_response, render_template_string
 
+
 import sqlite3
 import bcrypt
 import base64
+
 
 app = Flask(__name__)
 
@@ -124,6 +126,7 @@ def databaseSelect(page, sort):
                 LEFT JOIN popular ON Engine.id = popular.eid
                 ORDER BY sort_value DESC
             """
+
     elif page == "planes" or page == "engines":
         if sort == "new" or sort == "old" or sort == "A-Z" or sort == "Z-A":
             query = f"""
@@ -199,6 +202,7 @@ def home():
     connection.close()
     list_of_pages = []
     index = -1
+    # Limiting the amount of pages to 10
     for page in pages:
         index += 1
         if index < 10:
@@ -247,7 +251,6 @@ def planes():
 @app.route("/plane/<string:plane_id>", methods=["GET", "POST"])
 def plane(plane_id):
     connection, cursor = databaseOpen()
-    # Receiving the rating given
     if request.method == "POST":
         # Checking if the user has rated the page in the last 24 hours
         review_cookie = request.cookies.get(f"reviewed_plane_{plane_id}")
@@ -259,7 +262,6 @@ def plane(plane_id):
             </script>
             """)
         else:
-            # Receiving the value of the rating
             rating = request.form.get("rating")
             if rating:
                 rating = int(rating)
@@ -271,14 +273,13 @@ def plane(plane_id):
                     WHERE pid = ?
                 """, (rating, plane_id))
                 connection.commit()
-                # Inform the user rating was successful
+                # Inform the user rating was successful and making a cookie
                 response = make_response(render_template_string("""
                     <script>
                         alert("Review submitted successfully!");
                         window.history.back();  // Go back to the previous page
                     </script>
                 """))
-                # Creating a cookie that'll expires in 24 hours
                 response.set_cookie(f"reviewed_plane_{plane_id}", "true",
                                     max_age=60*60*24)
                 return response
@@ -289,7 +290,7 @@ def plane(plane_id):
         cursor.execute("SELECT opened FROM popular WHERE pid = ?", (plane_id,))
         opened = cursor.fetchone()
         # Checking if the plane exists in the popular table and increasing the
-        # amount of times the page has been opened otherwise adding it ot the
+        # amount of times the page has been opened otherwise adding it to the
         # popular table
         if opened:
             opened = opened[0] + 1
@@ -373,14 +374,13 @@ def engine(engine_id):
                     WHERE eid = ?
                 """, (rating, engine_id))
                 connection.commit()
-                # Inform the user rating was successful
+                # Inform the user rating was successful and making a cookie
                 response = make_response(render_template_string("""
                     <script>
                         alert("Review submitted successfully!");
                         window.history.back();  // Go back to the previous page
                     </script>
                 """))
-                # Creating a cookie that'll expires in 24 hours
                 response.set_cookie(f"reviewed_engine_{engine_id}", "true",
                                     max_age=60*60*24)
                 return response
@@ -420,37 +420,29 @@ def create():
     if request.method == "POST":
         # Check if the user has recently created a page
         if create_cookie:
-            print("User has made a page in last hour")
             return render_template_string("""
                 <script>
-                    alert("You have already created a page recently." +
-                    " Please wait at least an hour before creating another one.");
+                    alert("You have already created a page recently. " +
+                    "Please wait at least an hour before creating another one.");
                     window.history.back();
                 </script>
             """)
 
-        # Get form data
         plane_engine = request.form.get("PlaneEngine")
         name = request.form.get("name")
         description = request.form.get("description")
         password = request.form.get("password")
         picture_file = request.files.get("picture")
-        print("Files recieved:")
-        print(plane_engine, name, description, password, picture_file)
-        print(request.files)
 
         if picture_file and picture_file.filename != '':
-            print("There's a picture")
             # Read the file content and convert to base64
             file_data = picture_file.read()
             picture_blob = base64.b64encode(file_data).decode('utf-8')
         # Handle case where no file or invalid file type was uploaded
         else:
             picture_blob = None
-        print(picture_blob)
 
         if name and description and password and picture_blob:
-            # Hash the password
             hashed_password = bcrypt.hashpw(password.encode('utf-8'),
                                             bcrypt.gensalt())
 
@@ -498,7 +490,6 @@ def create():
                     window.location.href = "/";
                 </script>
             """))
-            # Cookie expires in 1 hour
             response.set_cookie("created_page", "true", max_age=60*60)
             return response
 
@@ -519,7 +510,6 @@ def edit(item_type, item_id):
         if picture_file and (picture_file.filename.endswith('.png')
                              or picture_file.filename.endswith('.jpg')
                              or picture_file.filename.endswith('.jpeg')):
-            # Read the file content and convert to base64
             file_data = picture_file.read()
             picture_blob = base64.b64encode(file_data).decode('utf-8')
         else:
@@ -619,7 +609,6 @@ def search():
     return jsonify({"results": []})
 
 
-# Handling 404 errors to direct user to 404 page
 @app.errorhandler(404)
 def not_found(eror):
     return render_template("404.html"), 404
