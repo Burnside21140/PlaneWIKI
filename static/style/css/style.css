@@ -8,16 +8,26 @@ body {
 }
 
 a {
-    color: inherit;
     text-decoration: inherit;
+    color: #e2e2e2;
 }
 
 p {
     text-wrap: pretty;
+    color: #e2e2e2;
+}
+
+h1 {
+    color: #e2e2e2;
 }
 
 body {
     font-family: "PT Sans Narrow", sans-serif;
+    background-color: #212d50;
+}
+
+label {
+    color: #e2e2e2;
 }
 
 .four-o-four {
@@ -42,7 +52,7 @@ nav {
     font-size: 120%;
     font-weight: bold;
     background-color: #303D60;
-    color: white;
+    color: #e2e2e2;
 }
 
 nav ul {
@@ -79,7 +89,7 @@ nav ul a {
 
 .nav-bar-item {
     margin: 0px;
-    color: whitesmoke;
+    color: #e2e2e2;
     text-decoration: none;
     align-items: center;
 }
@@ -98,7 +108,7 @@ nav ul a {
     display: block;
     padding: 5px;
     text-decoration: none;
-    color: black;
+    color: #e2e2e2;
 }
 
 .search-results a:hover {
