@@ -257,7 +257,8 @@ def plane(plane_id):
         if review_cookie:
             return render_template_string("""
             <script>
-                alert("You have already submitted a review for this item.");
+                alert("You have already submitted a review for this page"
+                + " in the last 24 hours.");
                 window.history.back();  // Go back to the previous page
             </script>
             """)
@@ -360,7 +361,8 @@ def engine(engine_id):
         if review_cookie:
             return render_template_string("""
             <script>
-                alert("You have already submitted a review for this item.");
+                alert("You have already submitted a review for this page"
+                + " in the last 24 hours.");
                 window.history.back();  // Go back to the previous page
             </script>
             """)
