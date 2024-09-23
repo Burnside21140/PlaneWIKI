@@ -418,8 +418,10 @@ def engine(engine_id):
 
 @app.route("/create", methods=["GET", "POST"])
 def create():
+    print("Create page")
     create_cookie = request.cookies.get("created_page")
     if request.method == "POST":
+        print("Submitted")
         # Check if the user has recently created a page
         if create_cookie:
             return render_template_string("""
@@ -429,13 +431,13 @@ def create():
                     window.history.back();
                 </script>
             """)
-
+        print("Recieving data")
         plane_engine = request.form.get("PlaneEngine")
         name = request.form.get("name")
         description = request.form.get("description")
         password = request.form.get("password")
         picture_file = request.files.get("picture")
-
+        print("Data recieved")
         if picture_file and picture_file.filename != '':
             # Read the file content and convert to base64
             file_data = picture_file.read()
@@ -444,10 +446,10 @@ def create():
         else:
             picture_blob = None
 
-        if name and description and password and picture_blob:
+        if name and description and password:
             hashed_password = bcrypt.hashpw(password.encode('utf-8'),
                                             bcrypt.gensalt())
-
+            print("Inserting data")
             # Insert new data into the plane/engine table, then the popular
             # table
             connection, cursor = databaseOpen()
@@ -559,11 +561,12 @@ def edit(item_type, item_id):
             return redirect(f"/{item_type}/{item_id}")
 
         else:
-            error = "Incorrect password. Please try again."
-            item = (name, description, picture_blob)
-            connection.close()
-            return render_template("edit.html", item_type=item_type,
-                                   item_id=item_id, item=item, error=error)
+            return render_template_string("""
+                <script>
+                    alert("The password you entered was incorrect. ");
+                    window.history.back();
+                </script>
+            """)
 
     # Fetching name, description, and picture from the database to show the
     # user what is already there
