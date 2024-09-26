@@ -22,18 +22,16 @@ def databaseSelect(page, sort):
     if page == "home":
         if sort == "new" or sort == "old":
             query = f"""
-                SELECT id, name, description, picture, 'plane' AS type,
-                id AS sort_value,
-                IFNULL(ratings, 0) * 1.0 /
-                IFNULL(totalratings, 1) AS avg_rating FROM Plane
-                LEFT JOIN popular ON Plane.id = popular.pid
+                SELECT id, name, description, picture, rowid FROM (
+                SELECT 'plane' AS type, p.id, p.name, p.description, p.picture, pop.rowid
+                FROM plane p
+                JOIN popular pop ON pop.pid = p.id
                 UNION ALL
-                SELECT id, name, description, picture, 'engine' AS type,
-                id AS sort_value,
-                IFNULL(ratings, 0) * 1.0 /
-                IFNULL(totalratings, 1) AS avg_rating FROM Engine
-                LEFT JOIN popular ON Engine.id = popular.eid
-                ORDER BY sort_value {'DESC' if sort == 'new' else 'ASC'}
+                SELECT 'engine' AS type, e.id, e.name, e.description, e.picture, pop.rowid
+                FROM engine e
+                JOIN popular pop ON pop.eid = e.id
+                )
+                ORDER BY rowid {'DESC' if sort == 'new' else 'ASC'};
             """
         elif sort == "mostViews" or sort == "leastViews":
             query = f"""
@@ -418,10 +416,8 @@ def engine(engine_id):
 
 @app.route("/create", methods=["GET", "POST"])
 def create():
-    print("Create page")
     create_cookie = request.cookies.get("created_page")
     if request.method == "POST":
-        print("Submitted")
         # Check if the user has recently created a page
         if create_cookie:
             return render_template_string("""
@@ -431,13 +427,11 @@ def create():
                     window.history.back();
                 </script>
             """)
-        print("Recieving data")
         plane_engine = request.form.get("PlaneEngine")
         name = request.form.get("name")
         description = request.form.get("description")
         password = request.form.get("password")
         picture_file = request.files.get("picture")
-        print("Data recieved")
         if picture_file and picture_file.filename != '':
             # Read the file content and convert to base64
             file_data = picture_file.read()
@@ -449,7 +443,6 @@ def create():
         if name and description and password:
             hashed_password = bcrypt.hashpw(password.encode('utf-8'),
                                             bcrypt.gensalt())
-            print("Inserting data")
             # Insert new data into the plane/engine table, then the popular
             # table
             connection, cursor = databaseOpen()
@@ -460,10 +453,8 @@ def create():
                                 hashed_password))
                 connection.commit()
                 cursor.execute("""SELECT id FROM plane WHERE name = ?
-                                  AND description = ? AND picture = ?
-                                  AND password = ?""",
-                               (name, description, picture_blob,
-                                hashed_password))
+                                  AND description = ? AND password = ?""",
+                               (name, description, hashed_password))
                 id = cursor.fetchone()
                 cursor.execute("""INSERT INTO popular (pid, opened, ratings,
                                   totalratings) VALUES (?, 0, 0, 0)""",
@@ -476,10 +467,8 @@ def create():
                                 hashed_password))
                 connection.commit()
                 cursor.execute("""SELECT id FROM engine WHERE name = ?
-                                  AND description = ? AND picture = ?
-                                  AND password = ?""",
-                               (name, description, picture_blob,
-                                hashed_password))
+                                  AND description = ? AND password = ?""",
+                               (name, description, hashed_password))
                 id = cursor.fetchone()
                 cursor.execute("""INSERT INTO popular (eid, opened, ratings,
                                   totalratings) VALUES (?, 0, 0, 0)""",
