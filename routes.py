@@ -22,12 +22,20 @@ def databaseSelect(page, sort):
     if page == "home":
         if sort == "new" or sort == "old":
             query = f"""
-                SELECT id, name, description, picture, rowid FROM (
-                SELECT 'plane' AS type, p.id, p.name, p.description, p.picture, pop.rowid
+                SELECT id, name, description, picture, type, rowid, avg_rating FROM (
+                SELECT 'plane' AS type, p.id, p.name, p.description, p.picture,
+                pop.rowid,
+                CASE WHEN pop.totalratings > 0
+                THEN pop.ratings * 1.0 / pop.totalratings
+                ELSE 0 END AS avg_rating
                 FROM plane p
                 JOIN popular pop ON pop.pid = p.id
                 UNION ALL
-                SELECT 'engine' AS type, e.id, e.name, e.description, e.picture, pop.rowid
+                SELECT 'engine' AS type, e.id, e.name, e.description, e.picture,
+                pop.rowid,
+                CASE WHEN pop.totalratings > 0
+                THEN pop.ratings * 1.0 / pop.totalratings
+                ELSE 0 END AS avg_rating
                 FROM engine e
                 JOIN popular pop ON pop.eid = e.id
                 )
